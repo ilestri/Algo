@@ -1,74 +1,44 @@
-import { reactive, ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed } from 'vue';
+import type { Step } from '@/types/step';
 
-type Options = {
-  onTick?: (index: number) => void // index는 1-based로 현재 적용된 step 수
-}
+export function useStepRunner<TState>(opts: {
+  initialState: TState;
+  steps: Step[];
+  fps?: number; // 내부 프레임–초당 틱(기본 60)
+}) {
+  const fps = opts.fps ?? 60;
+  const speed = ref(1); // 0.25x ~ 4x
+  const index = ref(0); // 현재 스텝 인덱스
+  const playing = ref(false);
+  const done = computed(() => index.value >= opts.steps.length);
 
-export function useStepRunner(options: Options = {}) {
-  const isPlaying = ref(false)
-  const speed = ref(1) // 0.25 ~ 4
-  const stepIndex = ref(0) // 적용된 step 수 (0 = 초기 상태)
-  let raf = 0
-  let last = 0
+  let _timer: number | null = null;
 
-  function loop(ts: number) {
-    if (!isPlaying.value) return
-    if (!last) last = ts
-    const delta = ts - last
-    const interval = 500 / speed.value // 기본 0.5초/step
-    if (delta >= interval) {
-      last = ts
-      stepForward()
-    }
-    raf = requestAnimationFrame(loop)
+  function play() {
+    if (done.value) return;
+    playing.value = true;
+    loop();
+  }
+  function pause() {
+    playing.value = false;
+    if (_timer) cancelAnimationFrame(_timer);
+  }
+  function reset() { pause(); index.value = 0; }
+  function stepForward(n = 1) { index.value = Math.min(opts.steps.length, index.value + n); }
+  function stepBack(n = 1) { index.value = Math.max(0, index.value - n); }
+  function setSpeed(v: number) { speed.value = Math.min(4, Math.max(0.25, v)); }
+
+  function loop() {
+    const interval = 1000 / (fps * speed.value);
+    let last = performance.now();
+    const tick = () => {
+      if (!playing.value) return;
+      const now = performance.now();
+      if (now - last >= interval) { last = now; stepForward(1); if (done.value) { pause(); return; } }
+      _timer = requestAnimationFrame(tick);
+    };
+    _timer = requestAnimationFrame(tick);
   }
 
-  function toggle() {
-    isPlaying.value = !isPlaying.value
-    if (isPlaying.value) {
-      last = 0
-      raf = requestAnimationFrame(loop)
-    } else {
-      cancelAnimationFrame(raf)
-    }
-  }
-
-  function setSpeed(v: number) {
-    speed.value = Math.min(4, Math.max(0.25, v))
-  }
-
-  function stepForward() {
-    stepIndex.value += 1
-    options.onTick?.(stepIndex.value)
-  }
-
-  function stepBack() {
-    stepIndex.value = Math.max(0, stepIndex.value - 1)
-    options.onTick?.(stepIndex.value)
-  }
-
-  function reset() {
-    stepIndex.value = 0
-    options.onTick?.(stepIndex.value)
-  }
-
-  function skipToEnd(total = Infinity) {
-    stepIndex.value = total
-    options.onTick?.(stepIndex.value)
-  }
-
-  onBeforeUnmount(() => cancelAnimationFrame(raf))
-
-  // 키보드
-  function onKey(e: KeyboardEvent) {
-    if (e.key === ' ') { e.preventDefault(); toggle() }
-    else if (e.key === 'ArrowRight') { e.preventDefault(); stepForward() }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack() }
-    else if (e.key === 'Home') { e.preventDefault(); reset() }
-    else if (e.key === 'End') { e.preventDefault(); skipToEnd() }
-  }
-  onMounted(() => window.addEventListener('keydown', onKey))
-  onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
-
-  return reactive({ isPlaying, speed, stepIndex, toggle, setSpeed, stepForward, stepBack, reset, skipToEnd })
+  return { speed, index, playing, done, play, pause, reset, stepForward, stepBack, setSpeed };
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <svg v-if="mode==='array'" :viewBox="`0 0 ${width} ${height}`" class="w-full h-64">
+    <svg v-if="mode==='array'" :viewBox="`0 0 ${width} ${height}`" class="w-full h-64" role="img" aria-label="배열 시각화">
       <g v-for="(v,i) in state.array" :key="i" :transform="`translate(${i*barWidth},0)`">
         <rect
           :x="1" :y="height - v * scaleY"
@@ -11,7 +11,7 @@
       </g>
     </svg>
 
-    <svg v-else-if="mode==='graph'" :viewBox="`0 0 ${width} ${height}`" class="w-full h-72">
+    <svg v-else-if="mode==='graph'" :viewBox="`0 0 ${width} ${height}`" class="w-full h-72" role="img" aria-label="그래프 시각화">
       <g>
         <g v-for="(e,idx) in state.edges" :key="idx" stroke="currentColor" :opacity="e.visited ? 1 : 0.4">
           <line :x1="e.x1" :y1="e.y1" :x2="e.x2" :y2="e.y2" stroke-width="2" />
@@ -23,7 +23,7 @@
       </g>
     </svg>
 
-    <svg v-else :viewBox="`0 0 ${width} ${height}`" class="w-full h-72">
+    <svg v-else :viewBox="`0 0 ${width} ${height}`" class="w-full h-72" role="img" aria-label="트리 시각화">
       <g v-for="(e,idx) in state.edges" :key="idx" stroke="currentColor" opacity="0.5">
         <line :x1="e.x1" :y1="e.y1" :x2="e.x2" :y2="e.y2" stroke-width="2" />
       </g>

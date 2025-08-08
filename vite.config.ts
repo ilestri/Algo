@@ -1,11 +1,36 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
   return {
     base: isProd ? '/algo-visualizer/' : '/', // dev: '/', prod: '/algo-visualizer/'
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        manifest: {
+          name: 'Vue 알고리즘 시각화',
+          short_name: 'AlgoViz',
+          description: '알고리즘/자료구조 시각화',
+          theme_color: '#0ea5e9',
+          background_color: '#0b1220',
+          display: 'standalone',
+          start_url: '/',
+          icons: [
+            { src: '/icons/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+            { src: '/icons/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' }
+          ]
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webmanifest}'],
+          runtimeCaching: [
+            { urlPattern: /^https:\/\/unpkg\.com\//, handler: 'CacheFirst', options: { cacheName: 'cdn' } }
+          ]
+        }
+      })
+    ],
     server: { port: 5173 },
     build: { target: 'es2022' },
     test: {

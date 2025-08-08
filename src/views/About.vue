@@ -16,7 +16,15 @@
     </div>
     <div class="card p-6">
       <h2 class="text-xl font-semibold mb-2">라이선스</h2>
-      <p>MIT</p>
+      <p class="mb-2">MIT</p>
+      <ul class="list-disc pl-5 text-sm space-y-1">
+        <li>Vue, Vue Router — MIT</li>
+        <li>Pinia — MIT</li>
+        <li>ECharts, vue-echarts — Apache-2.0</li>
+        <li>LZ-String — MIT</li>
+        <li>Lucide Icons — ISC</li>
+        <li>Tailwind CSS — MIT</li>
+      </ul>
     </div>
   </section>
 </template>

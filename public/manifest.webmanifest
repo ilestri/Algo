@@ -1,0 +1,13 @@
+{
+  "name": "Vue 알고리즘 시각화",
+  "short_name": "AlgoViz",
+  "description": "알고리즘/자료구조 시각화",
+  "theme_color": "#0ea5e9",
+  "background_color": "#0b1220",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    { "src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "/icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml" }
+  ]
+}

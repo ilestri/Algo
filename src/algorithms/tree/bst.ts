@@ -1,5 +1,60 @@
 import type { Step } from '../../types/steps'
+import type { Step, AlgoDescriptor } from '@/types/step';
 
+/**
+ * @complexity 시간: O(h), 공간: O(1) ~ O(h)
+ * @pseudocodeIndex
+ * 1: insert(T, key)
+ * 2: search(T, key)
+ * 3: delete(T, key)
+ */
+export function stepsOf(input: { keys: number[]; search?: number; remove?: number }): Step[] {
+  const keys = (input.keys || []).slice();
+  const steps: Step[] = [];
+
+  function visit(val: number, pc: number[], explain: string) {
+    steps.push({ type: 'visit', payload: { value: val }, pc, explain });
+  }
+
+  // 삽입 시퀀스
+  for (const k of keys) {
+    visit(k, [1], `키 ${k} 삽입 탐색`);
+    steps.push({ type: 'insert', payload: { key: k }, pc: [1], explain: `키 ${k} 삽입` });
+  }
+
+  // 검색
+  if (Number.isFinite(input.search as number)) {
+    const s = input.search as number;
+    visit(s, [2], `키 ${s} 검색`);
+  }
+
+  // 삭제
+  if (Number.isFinite(input.remove as number)) {
+    const d = input.remove as number;
+    steps.push({ type: 'delete', payload: { key: d }, pc: [3], explain: `키 ${d} 삭제` });
+  }
+
+  return steps;
+}
+
+export const descriptor: AlgoDescriptor<{ keys: number[]; search?: number; remove?: number }> = {
+  id: 'tree/bst',
+  category: 'tree',
+  title: '이진 탐색 트리 (BST)',
+  pseudocode: [
+    'insert(T, key)',
+    'search(T, key)',
+    'delete(T, key)',
+  ],
+  complexity: { best: 'O(log n)', average: 'O(log n)', worst: 'O(n)', space: 'O(h)' },
+  defaultInput: { keys: [7, 3, 9, 1, 5, 8, 10], search: 5 },
+  normalizeInput: (raw: any) => {
+    const keys = Array.isArray(raw?.keys) ? raw.keys.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x)) : [];
+    const search = Number(raw?.search);
+    const remove = Number(raw?.remove);
+    return { keys: keys.slice(0, 1000), search: Number.isFinite(search) ? search : undefined, remove: Number.isFinite(remove) ? remove : undefined };
+  }
+};
 /**
 Pseudocode (삽입):
 1: if root = ∅ then root ← new(key)

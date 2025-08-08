@@ -63,3 +63,61 @@ export const adapter = {
   pseudocode,
   code: generate.toString()
 }
+import type { Step, AlgoDescriptor } from '@/types/step';
+
+/**
+ * @complexity 시간: O(log n), 공간: O(1)
+ * @pseudocodeIndex
+ * 1: l ← 0; r ← n-1
+ * 2: while l ≤ r
+ * 3:   m ← ⌊(l+r)/2⌋
+ * 4:   if A[m] == key: return m
+ * 5:   else if A[m] < key: l ← m+1
+ * 6:   else: r ← m-1
+ */
+export function stepsOf(input: { array: number[]; key: number }): Step[] {
+  const a = input.array.slice().sort((x, y) => x - y);
+  const key = input.key;
+  const steps: Step[] = [];
+
+  let l = 0, r = a.length - 1;
+  steps.push({ type: 'highlightRange', payload: { l, r }, pc: [1], explain: `탐색 구간 초기화 [${l}, ${r}]` });
+
+  while (l <= r) {
+    steps.push({ type: 'highlightRange', payload: { l, r }, pc: [2], explain: `현재 구간 [${l}, ${r}]` });
+    const m = (l + r) >> 1;
+    steps.push({ type: 'compare', payload: { i: m }, pc: [3, 4], explain: `중앙 인덱스 ${m} 값과 키 비교` });
+    if (a[m] === key) {
+      steps.push({ type: 'visit', payload: { i: m }, pc: [4], explain: `키 발견: 인덱스 ${m}` });
+      break;
+    } else if (a[m] < key) {
+      steps.push({ type: 'pointer', payload: { name: 'l', index: m + 1 }, pc: [5], explain: `좌측 경계 이동: l=${m + 1}` });
+      l = m + 1;
+    } else {
+      steps.push({ type: 'pointer', payload: { name: 'r', index: m - 1 }, pc: [6], explain: `우측 경계 이동: r=${m - 1}` });
+      r = m - 1;
+    }
+  }
+  return steps;
+}
+
+export const descriptor: AlgoDescriptor<{ array: number[]; key: number }> = {
+  id: 'searching/binary',
+  category: 'searching',
+  title: '이진 탐색 (Binary Search)',
+  pseudocode: [
+    'l ← 0; r ← n-1',
+    'while l ≤ r:',
+    '  m ← ⌊(l+r)/2⌋',
+    '  if A[m] == key: return m',
+    '  else if A[m] < key: l ← m+1',
+    '  else: r ← m-1'
+  ],
+  complexity: { best: 'O(1)', average: 'O(log n)', worst: 'O(log n)', space: 'O(1)' },
+  defaultInput: { array: [1, 3, 5, 7, 9, 11, 13], key: 7 },
+  normalizeInput: (raw: any) => {
+    const arr = Array.isArray(raw?.array) ? raw.array.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x)) : [];
+    const key = Number(raw?.key);
+    return { array: arr.slice(0, 5000), key: Number.isFinite(key) ? key : 0 };
+  }
+};

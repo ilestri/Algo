@@ -8,3 +8,14 @@ export function listToMatrix(list: AdjList, n: number, weighted = false) {
   }
   return m;
 }
+export function matrixToList(m: number[][], weighted = false): AdjList {
+  const list: AdjList = {};
+  for (let u = 0; u < m.length; u++) {
+    list[u] = [];
+    for (let v = 0; v < m.length; v++) {
+      const w = m[u][v];
+      if (weighted ? Number.isFinite(w) && w > 0 : w > 0) list[u].push({ v, w: weighted ? w : 1 });
+    }
+  }
+  return list;
+}

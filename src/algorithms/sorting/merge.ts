@@ -17,7 +17,7 @@ export function mergeSortSteps(a: number[]): Step[] {
   return steps;
 }
 
-export const descriptor: import('@/types/step').AlgoDescriptor<{ array: number[] }> = {
+export const descriptor: AlgoDescriptor<{ array: number[] }> = {
   id: 'sorting/merge',
   category: 'sorting',
   title: '병합 정렬 (Merge Sort)',
@@ -30,3 +30,7 @@ export const descriptor: import('@/types/step').AlgoDescriptor<{ array: number[]
   complexity: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)', space: 'O(n)' },
   defaultInput: { array: [10,3,7,2,5,8] }
 };
+
+export function stepsOf(input: { array: number[] }): Step[] {
+  return mergeSortSteps(input.array);
+}

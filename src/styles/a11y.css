@@ -1,0 +1,36 @@
+/* 전역 포커스 링 및 대비 향상 */
+:root {
+  --focus-ring: 2px solid #3b82f6; /* tailwind blue-500 */
+  --focus-ring-offset: 2px;
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* 스킵 링크(필요 시) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus-visible {
+  left: 8px;
+  top: 8px;
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+  background: #111827; /* gray-900 */
+  color: white;
+  border-radius: 8px;
+  z-index: 1000;
+}

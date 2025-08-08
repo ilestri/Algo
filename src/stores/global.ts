@@ -9,6 +9,8 @@ export const useGlobalStore = defineStore('global', {
     theme: 'light' as Theme,
     preset: 'A' as Preset,
     speed: 1,
-    shareUrl: ''
+    shareUrl: '',
+    workerEnabled: true,
   }),
+  persist: { key: 'av-global' } as any,
 });

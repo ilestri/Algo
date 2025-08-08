@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface: #f8fafc;
+  --panel: #ffffff;
+  --text: #0f172a;
+  --primary: #2563eb;
+  --accent: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+[data-theme="dark"] {
+  --surface: #0b1220;
+  --panel: #111827;
+  --text: #e5e7eb;
+  --primary: #22d3ee;
+  --accent: #34d399;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+/* 프리셋 A (밝은 학습형) */
+.preset-a {
+  --primary: #2563eb;
+  --accent: #22c55e;
+}
+
+/* 프리셋 B (개발자 도구형) */
+.preset-b {
+  --primary: #22d3ee;
+  --accent: #34d399;
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+.card {
+  @apply rounded-2xl shadow-md bg-[var(--panel)] text-[var(--text)];
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-2xl px-4 py-2 font-medium transition;
+}
+
+.btn-primary {
+  @apply btn bg-[var(--primary)] text-white hover:opacity-90;
+}
+
+.btn-ghost {
+  @apply btn bg-transparent hover:bg-black/5 dark:hover:bg-white/10;
+}

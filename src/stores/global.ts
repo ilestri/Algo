@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 
 type Theme = 'light' | 'dark';
-type Preset = 'A' | 'B';
+type Preset = 'A';
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({

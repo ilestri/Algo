@@ -6,7 +6,7 @@
       name="array"
       v-model="text"
       rows="3"
-      class="w-full rounded border p-2"
+      class="w-full rounded border p-2 text-black"
       :aria-invalid="error ? 'true' : 'false'"
       aria-label="숫자 배열 입력"
       placeholder="예: 10,3,7,2,5,8"

@@ -1,33 +1,34 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-2">
-      <h3 class="font-semibold">Pseudocode</h3>
-      <button class="btn-ghost text-sm" @click="$emit('toggleView')">{{ showCode ? '의사코드' : 'TS 코드' }}</button>
+    <div class="mb-2">
+      <h3 class="font-semibold">의사코드(Pseudocode)</h3>
     </div>
-    <pre v-if="!showCode" ref="preEl" class="bg-black/5 dark:bg-white/10 rounded-2xl p-3 text-sm overflow-auto" role="list"><code>
-<span
-  v-for="(line, idx) in lines"
-  :key="idx"
-  :class="lineClass(idx+1)"
-  role="listitem"
-  :aria-current="highlight.includes(idx+1) ? 'true' : undefined"
-  :ref="el => setLineRef(idx, el as HTMLElement)"
->
-  {{ (idx+1).toString().padStart(2,' ') }}  {{ line }}
-</span>
-</code></pre>
-    <pre v-else class="bg-black/5 dark:bg-white/10 rounded-2xl p-3 text-sm overflow-auto"><code>{{ code }}</code></pre>
+    <div ref="preEl"
+         class="bg-black/5 dark:bg-white/10 rounded-2xl p-3 text-sm overflow-auto font-mono"
+         role="list">
+      <div
+          v-for="(line, idx) in lines"
+          :key="idx"
+          class="grid grid-cols-[2.5ch,1fr] gap-3 items-start py-0.5"
+          role="listitem"
+          :aria-current="highlight.includes(idx+1) ? 'true' : undefined"
+          :ref="el => setLineRef(idx, el as HTMLElement)"
+      >
+        <span class="text-right tabular-nums select-none opacity-60">{{
+            (idx + 1).toString().padStart(2, ' ')
+          }}</span>
+        <span class="whitespace-pre rounded px-1" :class="lineClass(idx+1)">{{ line }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import {ref, watch, nextTick} from 'vue';
 
 const props = defineProps<{
   lines: string[],
   highlight: number[],
-  showCode: boolean,
-  code: string
 }>()
 
 const preEl = ref<HTMLElement | null>(null);
@@ -38,7 +39,7 @@ function setLineRef(idx: number, el: HTMLElement | null) {
 }
 
 function lineClass(n: number) {
-  return props.highlight.includes(n) ? 'bg-yellow-200/50 dark:bg-yellow-400/20 block rounded px-1' : 'block'
+  return props.highlight.includes(n) ? 'bg-yellow-200/50 dark:bg-yellow-400/20' : ''
 }
 
 watch(() => props.highlight.slice(), async (vals) => {
@@ -55,7 +56,7 @@ watch(() => props.highlight.slice(), async (vals) => {
   const eBottom = eTop + el.clientHeight + 8;
 
   if (eTop < cTop || eBottom > cBottom) {
-    container.scrollTo({ top: eTop - container.clientHeight / 3, behavior: 'smooth' });
+    container.scrollTo({top: eTop - container.clientHeight / 3, behavior: 'smooth'});
   }
-}, { immediate: true });
+}, {immediate: true});
 </script>

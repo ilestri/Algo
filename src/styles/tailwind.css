@@ -28,12 +28,6 @@
   --accent: #22c55e;
 }
 
-/* 프리셋 B (개발자 도구형) */
-.preset-b {
-  --primary: #22d3ee;
-  --accent: #34d399;
-}
-
 html, body, #app {
   height: 100%;
 }
@@ -43,7 +37,7 @@ html, body, #app {
 }
 
 .btn {
-  @apply inline-flex items-center gap-2 rounded-2xl px-4 py-2 font-medium transition;
+  @apply inline-flex items-center gap-2 rounded-2xl px-4 py-2 font-medium transition whitespace-nowrap;
 }
 
 .btn-primary {

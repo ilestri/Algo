@@ -42,8 +42,12 @@ export const descriptor: AlgoDescriptor<{ array: number[] }> = {
     '  if l ≥ r: return',
     '  p ← r; i ← l',
     '  for j ← l to r-1:',
-    '    if A[j] < A[p]: swap A[i], A[j]; i ← i+1',
-    '  swap A[i], A[p]; quickSort(A, l, i-1); quickSort(A, i+1, r)'
+    '    if A[j] < A[p]: ',
+    '      swap A[i], A[j]; ',
+    '      i ← i+1',
+    '  swap A[i], A[p]; ',
+    '  quickSort(A, l, i-1); ',
+    '  quickSort(A, i+1, r)'
   ],
   complexity: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n^2)', space: 'O(log n)' },
   defaultInput: { array: [10,3,7,2,5,8] },

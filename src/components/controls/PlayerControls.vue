@@ -8,7 +8,6 @@
       </button>
       <button class="btn-ghost" :disabled="!canForward" @click="$emit('forward')" aria-label="다음 (→)">→</button>
       <button class="btn-ghost" :disabled="!canForward" @click="$emit('end')" aria-label="끝으로 (End)">끝</button>
-      <ShareLinkButton class="ml-2" :algo="algo" :input="input" :speed="speed" @copied="$emit('shared')" />
       <div class="ml-auto text-sm opacity-80" aria-live="polite">{{ index }} / {{ total }} step</div>
     </div>
     <SpeedSlider :value="speed" @change="$emit('update:speed', $event)" />
@@ -17,7 +16,6 @@
 
 <script setup lang="ts">
 import SpeedSlider from './SpeedSlider.vue';
-import ShareLinkButton from './ShareLinkButton.vue';
 
 const props = defineProps<{
   playing: boolean;
@@ -26,8 +24,6 @@ const props = defineProps<{
   index: number;
   total: number;
   speed: number;
-  algo: string;
-  input?: any;
 }>();
 
 const emit = defineEmits<{
@@ -37,7 +33,6 @@ const emit = defineEmits<{
   (e: 'forward'): void;
   (e: 'end'): void;
   (e: 'update:speed', val: number): void;
-  (e: 'shared'): void;
 }>();
 
 function onKey(e: KeyboardEvent) {

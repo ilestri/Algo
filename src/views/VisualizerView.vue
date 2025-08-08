@@ -2,9 +2,13 @@
   <section class="max-w-7xl mx-auto px-4 py-6">
     <div class="mb-4 flex items-center gap-2">
       <label for="algorithm-select" class="text-sm">알고리즘</label>
-      <select id="algorithm-select" name="algorithm" class="select" v-model="selectedId" aria-label="알고리즘 선택">
+      <select id="algorithm-select" name="algorithm" class="select" v-model="selectedId"
+              aria-label="알고리즘 선택">
         <option v-for="d in descriptors" :key="d.id" :value="d.id">{{ d.title }}</option>
       </select>
+      <div class="ml-auto">
+        <ShareLinkButton :algo="selectedId" :input="input" :speed="speed" @copied="onShared"/>
+      </div>
     </div>
 
     <div class="grid lg:grid-cols-[1fr_360px] gap-6">
@@ -27,7 +31,7 @@
         </div>
 
         <div class="card p-4">
-          <MetricsPanel :metrics="metrics" :timeline="metricsTimeline" />
+          <MetricsPanel :metrics="metrics" :timeline="metricsTimeline"/>
         </div>
       </div>
 
@@ -40,15 +44,12 @@
               :index="index"
               :total="steps.length"
               :speed="speed"
-              :algo="selectedId"
-              :input="input"
               @toggle="togglePlay"
               @home="jumpTo(0)"
               @back="stepBack()"
               @forward="stepForward()"
               @end="jumpTo(steps.length)"
               @update:speed="onSpeedChange"
-              @shared="onShared"
           />
         </div>
 
@@ -56,27 +57,25 @@
           <PseudocodePanel
               :lines="pseudocode"
               :highlight="pc"
-              :showCode="showCode"
-              :code="''"
-              @toggleView="showCode = !showCode"
           />
         </div>
 
         <div class="card p-3">
-          <InspectorPanel :pc="pc" :explain="explain" :meta="currentMeta" />
+          <InspectorPanel :pc="pc" :explain="explain" :meta="currentMeta"/>
         </div>
       </div>
     </div>
 
-    <KeyboardShortcutsModal :open="shortcutsOpen" @close="shortcutsOpen=false" />
-    <ErrorDialog :open="errorOpen" :message="errorMessage" @close="errorOpen=false" />
+    <KeyboardShortcutsModal :open="shortcutsOpen" @close="shortcutsOpen=false"/>
+    <ErrorDialog :open="errorOpen" :message="errorMessage" @close="errorOpen=false"/>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue';
+import {computed, ref, reactive, onMounted, onBeforeUnmount, watch} from 'vue';
 import VisualizerCanvas from '@/components/visualizer/VisualizerCanvas.vue';
 import PlayerControls from '@/components/controls/PlayerControls.vue';
+import ShareLinkButton from '@/components/controls/ShareLinkButton.vue';
 import PseudocodePanel from '@/components/panels/PseudocodePanel.vue';
 import MetricsPanel from '@/components/panels/MetricsPanel.vue';
 import InspectorPanel from '@/components/panels/InspectorPanel.vue';
@@ -87,13 +86,13 @@ import DataInputForm from '@/components/forms/DataInputForm.vue';
 import GraphEditorTabs from '@/components/forms/GraphEditorTabs.vue';
 import TreeInputForm from '@/components/forms/TreeInputForm.vue';
 
-import { useStepRunner } from '@/composables/useStepRunner';
-import { useA11yAnnouncements } from '@/composables/useA11yAnnouncements';
-import { useUrlState } from '@/composables/useUrlState';
-import type { Step, AlgoModule, AlgoDescriptor, SnapshotStrategy } from '@/types/step';
-import { initAlgorithms, listDescriptors, getAlgorithm } from '@/algorithms/registry';
-import { useSessionStore } from '@/stores/session';
-import { useGlobalStore } from '@/stores/global';
+import {useStepRunner} from '@/composables/useStepRunner';
+import {useA11yAnnouncements} from '@/composables/useA11yAnnouncements';
+import {useUrlState} from '@/composables/useUrlState';
+import type {Step, AlgoModule, AlgoDescriptor, SnapshotStrategy} from '@/types/step';
+import {initAlgorithms, listDescriptors, getAlgorithm} from '@/algorithms/registry';
+import {useSessionStore} from '@/stores/session';
+import {useGlobalStore} from '@/stores/global';
 
 const session = useSessionStore();
 const global = useGlobalStore();
@@ -117,23 +116,58 @@ onMounted(async () => {
 });
 
 // URL 상태 동기화(algo + 압축 s)
-const { state: urlState, patch } = useUrlState();
+const {state: urlState, patch} = useUrlState();
 watch(selectedId, (id) => {
   // 전역 알고리즘 선택 반영
   global.algoId = id;
   // 직렬화 가능한 입력 스냅샷과 speed 값으로 동기화
   const plainInput = JSON.parse(JSON.stringify(input));
-  patch({ algo: id, input: plainInput, speed: speed.value });
+  patch({algo: id, input: plainInput, speed: speed.value});
 });
 
+// URL → 내부 상태 동기화
+watch(() => urlState.value.algo, (nv) => {
+  if (nv && nv !== selectedId.value) {
+    selectedId.value = nv;
+  }
+}, {immediate: true});
+
+// URL 입력이 바뀌면 내부 입력에 반영하고 단계 재생성
+watch(() => urlState.value.input, (nv) => {
+  if (!nv) return;
+  const normalize = (currentMeta.value as any)?.normalizeInput ?? ((x: any) => x);
+  const normalized = normalize(nv);
+  // input 객체를 안전하게 교체
+  Object.keys(input).forEach(k => delete (input as any)[k]);
+  Object.assign(input, JSON.parse(JSON.stringify(normalized)));
+  // URL에서 온 변경은 다시 patch하지 않도록
+  if (typeof buildAndLoadSteps === 'function') {
+    buildAndLoadSteps(false);
+  }
+}, {deep: true});
+
 // 워커 전환 컴포저블
-import { useStepsWorker } from '@/composables/useStepsWorker';
-const stepsWorker = useStepsWorker({ bigArray: 5000, bigNodes: 1000 });
+import {useStepsWorker} from '@/composables/useStepsWorker';
+
+const stepsWorker = useStepsWorker({bigArray: 5000, bigNodes: 1000});
 
 // 현재 선택된 알고리즘 모듈
 const currentModule = computed<AlgoModule | undefined>(() => getAlgorithm(selectedId.value));
 const currentMeta = computed<AlgoDescriptor | null>(() => currentModule.value?.descriptor ?? null);
 const strategy = computed<SnapshotStrategy>(() => currentModule.value?.snapshotStrategy ?? 'full');
+
+// 초기 URL 입력을 currentMeta 초기화 이후 1회 적용
+onMounted(() => {
+  const nv = urlState.value.input;
+  if (!nv) return;
+  const normalize = (currentMeta.value as any)?.normalizeInput ?? ((x: any) => x);
+  const normalized = normalize(nv);
+  Object.keys(input).forEach(k => delete (input as any)[k]);
+  Object.assign(input, JSON.parse(JSON.stringify(normalized)));
+  if (typeof buildAndLoadSteps === 'function') {
+    buildAndLoadSteps(false);
+  }
+});
 
 // 알고리즘 메타 변경 시 입력 초기화 및 URL 동기화
 watch(() => currentMeta.value, (meta) => {
@@ -143,7 +177,11 @@ watch(() => currentMeta.value, (meta) => {
   Object.keys(input).forEach(k => delete (input as any)[k]);
   Object.assign(input, JSON.parse(JSON.stringify(def)));
   // URL 동기화(속도는 유지)
-  patch({ algo: selectedId.value, input: JSON.parse(JSON.stringify(input)) });
+  patch({algo: selectedId.value, input: JSON.parse(JSON.stringify(input))});
+  // 단계/상태 재생성
+  if (typeof buildAndLoadSteps === 'function') {
+    buildAndLoadSteps(false);
+  }
 });
 
 // 입력 및 입력 폼
@@ -156,13 +194,20 @@ const inputForm = computed(() => {
 });
 const inputFormProps = computed(() => {
   const cat = currentMeta.value?.category;
-  if (cat === 'graph') return { n: 5, list: {}, weighted: true };
-  if (cat === 'tree') return { initial: currentMeta.value?.defaultInput?.keys ?? [] };
-  return { initial: currentMeta.value?.defaultInput?.array ?? [] };
+  if (cat === 'graph') return {n: 5, list: {}, weighted: true};
+  if (cat === 'tree') return {initial: currentMeta.value?.defaultInput?.keys ?? []};
+  return {initial: currentMeta.value?.defaultInput?.array ?? []};
 });
 
 // 시각화 상태 및 모드(간이)
-const state = reactive<any>({ array: [], highlight: [], sorted: new Set<number>(), highlightRange: null, pivotIndex: null, pointers: [] as Array<{ name: string, index: number }> });
+const state = reactive<any>({
+  array: [],
+  highlight: [],
+  sorted: new Set<number>(),
+  highlightRange: null,
+  pivotIndex: null,
+  pointers: [] as Array<{ name: string, index: number }>
+});
 const canvasMode = computed<'array' | 'graph' | 'tree'>(() => {
   const cat = currentMeta.value?.category;
   if (cat === 'graph') return 'graph';
@@ -174,10 +219,17 @@ const canvasMode = computed<'array' | 'graph' | 'tree'>(() => {
 const steps = ref<Step[]>([]);
 const pc = ref<number[]>([]);
 const explain = ref<string>('');
-const showCode = ref(false);
 
 // 메트릭 및 타임라인
-const metrics = reactive({ steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 });
+const metrics = reactive({
+  steps: 0,
+  compares: 0,
+  swaps: 0,
+  visits: 0,
+  relaxes: 0,
+  enqueues: 0,
+  dequeues: 0
+});
 const metricsTimeline = ref<Array<Partial<typeof metrics>>>([]);
 
 // 간이 인터프리터(배열·그래프 공통 일부 처리)
@@ -185,18 +237,18 @@ const interpreter = {
   apply(s: any, step: Step) {
     switch (step.type) {
       case 'compare': {
-        const { i, j } = step.payload || {};
+        const {i, j} = step.payload || {};
         s.highlight = [i, j].filter((x: any) => Number.isInteger(x));
         break;
       }
       case 'swap': {
-        const { i, j } = step.payload;
+        const {i, j} = step.payload;
         [s.array[i], s.array[j]] = [s.array[j], s.array[i]];
         s.highlight = [i, j];
         break;
       }
       case 'setValue': {
-        const { index, value } = step.payload;
+        const {index, value} = step.payload;
         s.array[index] = value;
         break;
       }
@@ -209,20 +261,20 @@ const interpreter = {
         break;
       }
       case 'pointer': {
-        const { name, index } = step.payload || {};
+        const {name, index} = step.payload || {};
         if (!Array.isArray(s.pointers)) s.pointers = [];
         const idx = s.pointers.findIndex((p: any) => p.name === name);
         if (idx >= 0) s.pointers[idx].index = index;
-        else s.pointers.push({ name, index });
+        else s.pointers.push({name, index});
         break;
       }
       case 'relax': {
         // Dijkstra: 거리 이완 적용(이전 값 스택 보관)
         if (!Array.isArray(s._relaxHistory)) s._relaxHistory = [];
         if (!Array.isArray(s.dist)) s.dist = [];
-        const { v, dist } = step.payload || {};
+        const {v, dist} = step.payload || {};
         const prev = s.dist[v];
-        s._relaxHistory.push({ v, prev });
+        s._relaxHistory.push({v, prev});
         s.dist[v] = dist;
         break;
       }
@@ -247,7 +299,19 @@ const interpreter = {
 };
 
 // 러너 생성
-const { speed, index, playing, done, play, pause, reset, stepForward, stepBack, setSpeed, jumpTo, on } = useStepRunner({
+const {
+  speed,
+  index,
+  playing,
+  play,
+  pause,
+  reset,
+  stepForward,
+  stepBack,
+  setSpeed,
+  jumpTo,
+  on
+} = useStepRunner({
   initialState: state,
   steps: steps.value,
   fps: 60,
@@ -256,10 +320,10 @@ const { speed, index, playing, done, play, pause, reset, stepForward, stepBack, 
 });
 
 // 러너 인덱스/이벤트 연계
-on('beforeStep', ({ index: i, step }) => {
+on('beforeStep', () => {
   // no-op
 });
-on('afterStep', ({ index: i, step }) => {
+on('afterStep', ({index: i, step}) => {
   metrics.steps += 1;
   if (step.type === 'compare') metrics.compares += 1;
   if (step.type === 'swap') metrics.swaps += 1;
@@ -274,7 +338,7 @@ on('afterStep', ({ index: i, step }) => {
   session.explain = explain.value;
 
   // 타임라인 샘플링
-  metricsTimeline.value.push({ ...metrics });
+  metricsTimeline.value.push({...metrics});
   if (metricsTimeline.value.length > 2000) metricsTimeline.value.shift();
 
   // 라이브 리전 안내
@@ -288,8 +352,78 @@ on('done', () => {
 const canBack = computed(() => strategy.value !== 'none' && index.value > 0);
 const canForward = computed(() => index.value < steps.value.length);
 
+// 단계/상태 재생성 유틸
+async function buildAndLoadSteps(shouldPatch: boolean = true) {
+  const mod = currentModule.value;
+  const meta = currentMeta.value as any;
+  if (!mod || !meta) return;
+
+  // 입력 정규화
+  const normalize = meta.normalizeInput ?? ((x: any) => x);
+  const normalized = normalize(JSON.parse(JSON.stringify(input)));
+
+  // 시각화 상태 초기화
+  if (meta.category === 'sorting' || meta.category === 'searching') {
+    state.array = Array.isArray(normalized.array) ? normalized.array.slice() : [];
+  }
+  state.highlight = [];
+  state.sorted = new Set<number>();
+  state.highlightRange = null;
+  state.pivotIndex = null;
+  state.pointers = [];
+
+  // 단계 계산(대용량은 워커 사용)
+  try {
+    const generated: Step[] = await stepsWorker.generate(
+        mod.descriptor.id,
+        normalized,
+        () => mod.stepsOf(normalized)
+    );
+    steps.value = Array.isArray(generated) ? generated : [];
+  } catch {
+    steps.value = [];
+  }
+
+  // 메트릭/타임라인 초기화
+  metrics.steps = 0;
+  metrics.compares = 0;
+  metrics.swaps = 0;
+  metrics.visits = 0;
+  metrics.relaxes = 0;
+  metrics.enqueues = 0;
+  metrics.dequeues = 0;
+  metricsTimeline.value = [];
+
+  // 러너 초기화
+  try {
+    reset();
+    jumpTo(0);
+  } catch {
+    // no-op
+  }
+
+  // URL 패치
+  if (shouldPatch) {
+    const plainInput = JSON.parse(JSON.stringify(input));
+    patch({algo: selectedId.value, input: plainInput, speed: speed.value});
+  }
+}
+
+// 폼 제출 핸들러
+function onSubmitInput(values: number[]) {
+  const meta = currentMeta.value;
+  if (!meta) return;
+  if (meta.category === 'sorting' || meta.category === 'searching') {
+    (input as any).array = Array.isArray(values) ? values.slice() : [];
+  }
+  // 필요한 경우 다른 카테고리 확장 가능
+  buildAndLoadSteps(true);
+}
+
 // 제어기 래핑
-function togglePlay() { playing.value ? pause() : play(); }
+function togglePlay() {
+  playing.value ? pause() : play();
+}
 
 // 현재 스텝 메타
 watch(index, (i) => {
@@ -298,75 +432,10 @@ watch(index, (i) => {
   explain.value = cur?.explain ?? '';
 });
 
-// 알고리즘/입력 준비
-async function prepare() {
-  const mod = currentModule.value;
-  if (!mod) return;
-
-  // 입력 정규화
-  const normalized = mod.descriptor.normalizeInput(input);
-  Object.assign(input, normalized);
-
-  // 상태 초기화
-  state.array = Array.isArray((input as any).array) ? [...(input as any).array] : [];
-  state.highlight = [];
-  state.sorted = new Set<number>();
-  state.highlightRange = null;
-  state.pivotIndex = null;
-  state.pointers = [];
-
-  // 그래프 카테고리: 기본 노드/엣지 레이아웃 구성(원형 배치) + 거리/이력 초기화
-  if (currentMeta.value?.category === 'graph') {
-    const n = Number((normalized as any).n ?? 0);
-    const adj = (normalized as any).adj ?? {};
-    const start = Number((normalized as any).start ?? 0);
-
-    const cx = 500, cy = 200, r = 140;
-    const nodes = Array.from({ length: n }, (_, i) => ({
-      id: i,
-      x: cx + Math.cos((2 * Math.PI * i) / Math.max(1, n)) * r,
-      y: cy + Math.sin((2 * Math.PI * i) / Math.max(1, n)) * r,
-    }));
-    const edges: Array<{ u: number; v: number; w?: number }> = [];
-    for (const [uStr, list] of Object.entries(adj as Record<string, Array<{ v: number; w?: number }>>)) {
-      const u = Number(uStr);
-      for (const { v, w } of (list || [])) edges.push({ u, v, w });
-    }
-    (state as any).nodes = nodes;
-    (state as any).edges = edges;
-
-    // Dijkstra 대비: 거리/이력 초기화
-    (state as any).dist = Array(n).fill(Number.POSITIVE_INFINITY);
-    (state as any).dist[start] = 0;
-    (state as any)._relaxHistory = [];
-  }
-
-  // 스텝 생성(대용량 시 워커 경로 사용)
-  const gen = await stepsWorker.generate(mod.descriptor.id, normalized, () => mod.stepsOf(normalized));
-  steps.value = gen;
-
-  // 러너 재설정
-  reset();
-  metrics.steps = metrics.compares = metrics.swaps = metrics.visits = metrics.relaxes = metrics.enqueues = metrics.dequeues = 0;
-  metricsTimeline.value = [];
-  pc.value = [];
-  explain.value = '';
-}
-watch([currentModule], prepare, { immediate: true });
-
-// 입력 폼 제출
-function onSubmitInput(payload: any) {
-  Object.assign(input, payload);
-  prepare().then(() => {
-    const plainInput = JSON.parse(JSON.stringify(input));
-    patch({ algo: selectedId.value, input: plainInput, speed: speed.value });
-  });
-}
-
 function onSpeedChange(val: number) {
   setSpeed(val);
   const plainInput = JSON.parse(JSON.stringify(input));
-  patch({ algo: selectedId.value, input: plainInput, speed: val });
+  patch({algo: selectedId.value, input: plainInput, speed: val});
 }
 
 function onShared() {
@@ -376,14 +445,40 @@ function onShared() {
 
 // 키보드 단축키
 const shortcutsOpen = ref(false);
+
 function onKey(e: KeyboardEvent) {
-  if (e.key === '?') { shortcutsOpen.value = true; e.preventDefault(); return; }
-  if (e.key === ' ') { togglePlay(); e.preventDefault(); return; }
-  if (e.key === 'ArrowRight') { if (e.shiftKey) stepForward(5); else stepForward(1); e.preventDefault(); return; }
-  if (e.key === 'ArrowLeft') { if (e.shiftKey) stepBack(5); else stepBack(1); e.preventDefault(); return; }
-  if (e.key === 'Home') { jumpTo(0); e.preventDefault(); return; }
-  if (e.key === 'End') { jumpTo(steps.value.length); e.preventDefault(); return; }
+  if (e.key === '?') {
+    shortcutsOpen.value = true;
+    e.preventDefault();
+    return;
+  }
+  if (e.key === ' ') {
+    togglePlay();
+    e.preventDefault();
+    return;
+  }
+  if (e.key === 'ArrowRight') {
+    if (e.shiftKey) stepForward(5); else stepForward(1);
+    e.preventDefault();
+    return;
+  }
+  if (e.key === 'ArrowLeft') {
+    if (e.shiftKey) stepBack(5); else stepBack(1);
+    e.preventDefault();
+    return;
+  }
+  if (e.key === 'Home') {
+    jumpTo(0);
+    e.preventDefault();
+    return;
+  }
+  if (e.key === 'End') {
+    jumpTo(steps.value.length);
+    e.preventDefault();
+    return;
+  }
 }
+
 onMounted(() => window.addEventListener('keydown', onKey));
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 

@@ -24,7 +24,9 @@ export const descriptor: AlgoDescriptor<{ array: number[] }> = {
   pseudocode: [
     'procedure mergeSort(A, l, r)',
     '  if l ≥ r: return',
-    '  m ← ⌊(l+r)/2⌋; mergeSort(A, l, m); mergeSort(A, m+1, r)',
+    '  m ← ⌊(l+r)/2⌋; ',
+    '  mergeSort(A, l, m);',
+    '  mergeSort(A, m+1, r)',
     '  merge(A, l, m, r)'
   ],
   complexity: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)', space: 'O(n)' },

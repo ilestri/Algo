@@ -7,12 +7,12 @@
 
     <div v-if="mode==='list'" class="space-y-2">
       <label class="block text-sm">인접 리스트(JSON)</label>
-      <textarea v-model="listText" rows="6" class="w-full rounded border p-2"></textarea>
+      <textarea v-model="listText" rows="6" class="w-full rounded border p-2 text-black"></textarea>
     </div>
 
     <div v-else class="space-y-2">
       <label class="block text-sm">인접 행렬(JSON)</label>
-      <textarea v-model="matrixText" rows="6" class="w-full rounded border p-2"></textarea>
+      <textarea v-model="matrixText" rows="6" class="w-full rounded border p-2 text-black"></textarea>
     </div>
 
     <div class="mt-2 flex gap-2">

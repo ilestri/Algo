@@ -8,9 +8,8 @@
 import AppLayout from './components/layout/AppLayout.vue'
 import { useAppStore } from './stores/app'
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
 
 const app = useAppStore()
-const { theme, preset } = storeToRefs(app)
-const presetClass = computed(() => (preset.value === 'A' ? 'preset-a' : 'preset-b'))
+const { theme } = storeToRefs(app)
+const presetClass = 'preset-a'
 </script>

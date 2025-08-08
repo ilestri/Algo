@@ -26,7 +26,7 @@
           <RouterLink class="btn-ghost" :to="{ name: 'about' }">About</RouterLink>
         </div>
         <div class="mt-6">
-          <p class="text-sm opacity-70">테마/프리셋 토글은 헤더에서 변경할 수 있습니다.</p>
+          <p class="text-sm opacity-70">테마 토글은 헤더에서 변경할 수 있습니다.</p>
         </div>
       </div>
     </div>

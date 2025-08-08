@@ -8,7 +8,6 @@
         <nav class="flex items-center gap-2">
           <RouterLink class="btn-ghost" to="/playground">Playground</RouterLink>
           <RouterLink class="btn-ghost" to="/about">About</RouterLink>
-          <PresetToggle class="ml-2" />
           <ThemeToggle class="ml-2" />
         </nav>
       </div>
@@ -25,5 +24,4 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import ThemeToggle from '../common/ThemeToggle.vue'
-import PresetToggle from '../common/PresetToggle.vue'
 </script>

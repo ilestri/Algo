@@ -1,8 +1,8 @@
 <template>
   <section class="max-w-7xl mx-auto px-4 py-6">
     <div class="mb-4 flex items-center gap-2">
-      <label class="text-sm">알고리즘</label>
-      <select class="select" v-model="selectedId" aria-label="알고리즘 선택">
+      <label for="algorithm-select" class="text-sm">알고리즘</label>
+      <select id="algorithm-select" name="algorithm" class="select" v-model="selectedId" aria-label="알고리즘 선택">
         <option v-for="d in descriptors" :key="d.id" :value="d.id">{{ d.title }}</option>
       </select>
     </div>

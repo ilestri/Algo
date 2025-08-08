@@ -1,5 +1,5 @@
 <template>
-  <form class="space-y-2" @submit.prevent="emit('submit', { keys, search, remove })">
+  <form class="space-y-2" @submit.prevent="emit('submit', { keys: keys.value, search: search?.value, remove: remove?.value })">
     <label class="block text-sm">키 목록(쉼표 구분)</label>
     <input v-model="keysText" class="w-full rounded border p-2" />
     <div class="grid grid-cols-2 gap-2">

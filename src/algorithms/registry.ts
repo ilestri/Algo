@@ -1,16 +1,20 @@
-import type { AlgoModule, AlgoDescriptor } from '@/types/step';
-import { useRegistryStore } from '@/stores/registry';
+import type {AlgoModule, AlgoDescriptor} from '@/types/step';
+import {useRegistryStore} from '@/stores/registry';
 
 /**
  * src/algorithms//registry.ts 를 제외한 모든 알고리즘 모듈을 지연 로딩한다.
  * 각 모듈은 { descriptor, stepsOf, snapshotStrategy? }를 export 해야 한다.
  */
-const moduleLoaders = import.meta.glob<true, string, { descriptor: AlgoDescriptor<any>, stepsOf: Function, snapshotStrategy?: any }>(
-  [
-    './**/*.ts',
-    '!./**/registry.ts',
-  ],
-  { eager: false }
+const moduleLoaders = import.meta.glob<false, string, {
+  descriptor: AlgoDescriptor,
+  stepsOf: Function,
+  snapshotStrategy?: any
+}>(
+    [
+      './**/*.ts',
+      '!./**/registry.ts',
+    ],
+    {eager: false}
 );
 
 let initialized = false;

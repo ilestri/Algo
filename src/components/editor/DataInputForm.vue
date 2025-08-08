@@ -5,16 +5,16 @@
       <button class="btn-ghost text-sm" @click="$emit('loadSample')">예제 불러오기</button>
     </div>
     <div v-if="category === 'sorting' || category === 'searching'">
-      <label class="text-sm mb-1 block">배열 (쉼표 구분)</label>
-      <input class="w-full" type="text" :value="arrayText" @input="onArrayChange" placeholder="e.g. 5,3,8,1,4" />
+      <label for="array-input" class="text-sm mb-1 block">배열 (쉼표 구분)</label>
+      <input id="array-input" name="array" class="w-full" type="text" :value="arrayText" @input="onArrayChange" placeholder="e.g. 5,3,8,1,4" />
       <p v-if="arrayError" class="text-danger text-sm mt-1">{{ arrayError }}</p>
     </div>
     <div v-else-if="category === 'graph'">
       <GraphEditorTabs :model-value="graph" @update:modelValue="onGraphChange" />
     </div>
     <div v-else-if="category === 'tree'">
-      <label class="text-sm mb-1 block">삽입/삭제 시퀀스 (쉼표 구분)</label>
-      <input class="w-full" type="text" :value="seqText" @input="onSeqChange" placeholder="e.g. 8,3,10,1,6,14" />
+      <label for="seq-input" class="text-sm mb-1 block">삽입/삭제 시퀀스 (쉼표 구분)</label>
+      <input id="seq-input" name="sequence" class="w-full" type="text" :value="seqText" @input="onSeqChange" placeholder="e.g. 8,3,10,1,6,14" />
       <p v-if="seqError" class="text-danger text-sm mt-1">{{ seqError }}</p>
     </div>
   </div>

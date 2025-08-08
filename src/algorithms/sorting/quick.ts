@@ -46,7 +46,13 @@ export const descriptor: AlgoDescriptor<{ array: number[] }> = {
     '  swap A[i], A[p]; quickSort(A, l, i-1); quickSort(A, i+1, r)'
   ],
   complexity: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n^2)', space: 'O(log n)' },
-  defaultInput: { array: [10,3,7,2,5,8] }
+  defaultInput: { array: [10,3,7,2,5,8] },
+  normalizeInput: (raw: any) => {
+    const arr = Array.isArray(raw?.array)
+      ? raw.array.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x))
+      : [];
+    return { array: arr.slice(0, 5000) };
+  }
 };
 
 export function stepsOf(input: { array: number[] }): Step[] {

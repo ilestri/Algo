@@ -1,7 +1,9 @@
 <template>
   <form class="space-y-2" @submit.prevent="onSubmit" aria-label="데이터 입력 폼">
-    <label class="block text-sm">배열(쉼표 구분)</label>
+    <label for="array-textarea" class="block text-sm">배열(쉼표 구분)</label>
     <textarea
+      id="array-textarea"
+      name="array"
       v-model="text"
       rows="3"
       class="w-full rounded border p-2"

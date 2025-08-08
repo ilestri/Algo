@@ -1,4 +1,4 @@
-import type { Step } from '../../types/steps'
+import type { Step, AlgoDescriptor } from '@/types/step';
 /**
 Pseudocode:
 1: for i ← 0 to n-2

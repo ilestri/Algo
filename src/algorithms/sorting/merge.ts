@@ -28,7 +28,13 @@ export const descriptor: AlgoDescriptor<{ array: number[] }> = {
     '  merge(A, l, m, r)'
   ],
   complexity: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)', space: 'O(n)' },
-  defaultInput: { array: [10,3,7,2,5,8] }
+  defaultInput: { array: [10,3,7,2,5,8] },
+  normalizeInput: (raw: any) => {
+    const arr = Array.isArray(raw?.array)
+      ? raw.array.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x))
+      : [];
+    return { array: arr.slice(0, 5000) };
+  }
 };
 
 export function stepsOf(input: { array: number[] }): Step[] {

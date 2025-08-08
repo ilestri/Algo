@@ -105,6 +105,12 @@ const selectedId = ref<string>(global.algoId);
 onMounted(async () => {
   await initAlgorithms();
   descriptors.value = listDescriptors();
+  // normalizeInput 폴리필: 없는 경우 원본 반환 함수로 채워 안전하게 처리
+  descriptors.value.forEach((d: any) => {
+    if (typeof (d as any).normalizeInput !== 'function') {
+      (d as any).normalizeInput = (x: any) => x;
+    }
+  });
   if (!descriptors.value.find(d => d.id === selectedId.value)) {
     selectedId.value = descriptors.value[0]?.id || 'sorting/quick';
   }

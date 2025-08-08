@@ -1,4 +1,3 @@
-import type { Step } from '../../types/steps'
 import type { Step, AlgoDescriptor } from '@/types/step';
 
 /**

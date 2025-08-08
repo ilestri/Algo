@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
@@ -31,6 +32,11 @@ export default defineConfig(({ mode }) => {
         }
       })
     ],
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url))
+      }
+    },
     server: { port: 5173 },
     build: { target: 'es2022' },
     test: {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import {computed} from "vue";
 
 const props = defineProps<{ nodes: Array<{ id: number; x: number; y: number; value: number; highlight?: boolean }>; edges: Array<{ x1: number; y1: number; x2: number; y2: number }>; ariaLabel?: string }>();
 const label = computed(() => props.ariaLabel ?? `이진 탐색 트리: 노드 ${props.nodes.length}개`);

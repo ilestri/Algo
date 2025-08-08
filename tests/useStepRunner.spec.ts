@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { useStepRunner } from '../src/composables/useStepRunner'
+import { useStepRunner } from '@/composables/useStepRunner'
+import type { Step } from '@/types/step';
 
 describe('useStepRunner', () => {
   it('steps forward/back and sets speed', () => {
@@ -15,10 +16,6 @@ describe('useStepRunner', () => {
     expect(onTick).toHaveBeenCalled()
   })
 })
-import { describe, it, expect } from 'vitest';
-import { useStepRunner } from '../src/composables/useStepRunner';
-import type { Step } from '../src/types/step';
-
 describe('useStepRunner', () => {
   it('forward, back, jump, done events', async () => {
     const steps: Step[] = [

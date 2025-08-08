@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import {computed} from "vue";
 
 const props = defineProps<{ values: number[]; active?: number[]; sorted?: Set<number>; ariaLabel?: string }>();
 const label = computed(() => props.ariaLabel ?? `막대 그래프: ${props.values.length}개 원소`);

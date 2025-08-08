@@ -1,4 +1,4 @@
-import type { Step } from '../../types/steps'
+import type { Step, AlgoDescriptor } from '@/types/step';
 /**
 Pseudocode:
 1: for i ← 1 to n-1
@@ -47,7 +47,6 @@ export function apply(state: any, step: Step, metrics: any) {
   }
   return s
 }
-import type { Step, AlgoDescriptor } from '@/types/step';
 
 /**
  * @complexity 시간: O(n^2), 공간: O(1)

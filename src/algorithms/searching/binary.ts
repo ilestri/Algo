@@ -1,4 +1,4 @@
-import type { Step } from '../../types/steps'
+import type { Step } from '@/types/step'
 /**
 Pseudocode:
 1: l ← 0, r ← n-1
@@ -63,7 +63,7 @@ export const adapter = {
   pseudocode,
   code: generate.toString()
 }
-import type { Step, AlgoDescriptor } from '@/types/step';
+import type { AlgoDescriptor } from '@/types/step';
 
 /**
  * @complexity 시간: O(log n), 공간: O(1)

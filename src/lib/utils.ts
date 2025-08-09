@@ -28,13 +28,13 @@ export function parseQueryState(route: RouteLocationNormalizedLoaded) {
   const q = route.query
   const res: any = {}
   if (q.a) {
-    try { res.array = JSON.parse(LZString.decompressFromEncodedURIComponent(String(q.a)) || '[]') } catch {}
+    try { res.array = JSON.parse(LZString.decompressFromEncodedURIComponent(String(q.a)) || '[]') } catch { void 0 }
   }
   if (q.g) {
-    try { res.graph = LZString.decompressFromEncodedURIComponent(String(q.g)) || '' } catch {}
+    try { res.graph = LZString.decompressFromEncodedURIComponent(String(q.g)) || '' } catch { void 0 }
   }
   if (q.s) {
-    try { res.seq = JSON.parse(LZString.decompressFromEncodedURIComponent(String(q.s)) || '[]') } catch {}
+    try { res.seq = JSON.parse(LZString.decompressFromEncodedURIComponent(String(q.s)) || '[]') } catch { void 0 }
   }
   if (q.v) {
     const v = Number(q.v); if (Number.isFinite(v)) res.speed = v

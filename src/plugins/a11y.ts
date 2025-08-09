@@ -14,6 +14,7 @@ function getFocusable(root: HTMLElement): HTMLElement[] {
 
 const TrapFocus = {
   mounted(el: HTMLElement, _binding: DirectiveBinding) {
+    void _binding;
     const handler = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return;
       const list = getFocusable(el);

@@ -7,7 +7,7 @@ import {useRegistryStore} from '@/stores/registry';
  */
 const moduleLoaders = import.meta.glob<false, string, {
   descriptor: AlgoDescriptor,
-  stepsOf: Function,
+  stepsOf: (...args: any[]) => unknown,
   snapshotStrategy?: any
 }>(
     [
@@ -24,7 +24,7 @@ export async function initAlgorithms() {
   const store = useRegistryStore();
 
   const entries = Object.entries(moduleLoaders);
-  for (const [path, loader] of entries) {
+  for (const [, loader] of entries) {
     try {
       const mod: any = await loader();
       if (mod && mod.descriptor && typeof mod.stepsOf === 'function') {

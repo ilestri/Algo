@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { quickSortSteps } from './quick';
+import { quickSortSteps } from '@/algorithms/sorting/quick';
 
 describe('quickSortSteps', () => {
   it('emits non-empty steps', () => {

@@ -6,9 +6,9 @@ type RunnerEvent = 'beforeStep' | 'afterStep' | 'done';
 
 const deepClone = <T>(v: T): T => {
   try {
-    // @ts-ignore
-    if (typeof structuredClone === 'function') return structuredClone(v);
-  } catch {}
+    const sc = (globalThis as any).structuredClone;
+    if (typeof sc === 'function') return sc(v);
+  } catch { void 0 }
   return JSON.parse(JSON.stringify(v));
 };
 
@@ -36,7 +36,7 @@ export function useStepRunner<TState>(opts: {
   if (strategy === 'full') snapshots[0] = deepClone(opts.initialState);
 
   // 이벤트 리스너
-  const listeners: Record<RunnerEvent, Set<Function>> = {
+  const listeners: Record<RunnerEvent, Set<(payload?: any) => void>> = {
     beforeStep: new Set(),
     afterStep: new Set(),
     done: new Set(),

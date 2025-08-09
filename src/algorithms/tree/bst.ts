@@ -88,7 +88,7 @@ function insert(root: Node | undefined, key: number, steps: Step[]) {
   }
   let cur = root
   steps.push({ type: 'visit', payload: { id: cur.id }, pc: [2,3], explain: `노드 방문 ${cur.value}` })
-  while (true) {
+  for (;;) {
     if (key < cur.value) {
       steps.push({ type: 'compare', payload: { cur: cur.value, key }, pc: [4], explain: '왼쪽 비교' })
       if (!cur.left) {
@@ -164,8 +164,9 @@ export function* generate(seq: number[]) {
   for (const s of steps) yield s
 }
 
-export function apply(state: any, step: Step, metrics: any) {
+export function apply(state: any, step: Step, _metrics: any) {
   const s = { ...state, nodes: state.nodes.map((n: any) => ({ ...n })) }
+  void _metrics;
   if (step.type === 'visit') {
     const n = s.nodes.find((n: any) => n.id === step.payload.id)
     if (n) n.highlight = true

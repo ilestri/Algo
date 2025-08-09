@@ -8,7 +8,7 @@ export const useInputsStore = defineStore('inputs', {
     seq: [8, 3, 10, 1, 6, 14] as number[]
   }),
   actions: {
-    loadSample(category: string, name: string) {
+    loadSample(category: string) {
       if (category === 'sorting') {
         this.array = [5, 3, 8, 1, 4, 2, 7]
       } else if (category === 'searching') {

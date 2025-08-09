@@ -8,5 +8,5 @@ import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/compon
 use([CanvasRenderer, LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent]);
 
 export function setupECharts(app: App) {
-  app.component('v-chart', VChart);
+  app.component('VChart', VChart);
 }

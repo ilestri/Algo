@@ -56,7 +56,12 @@ watch(() => props.highlight.slice(), async (vals) => {
   const eBottom = eTop + el.clientHeight + 8;
 
   if (eTop < cTop || eBottom > cBottom) {
-    container.scrollTo({top: eTop - container.clientHeight / 3, behavior: 'smooth'});
+    const top = eTop - container.clientHeight / 3;
+    if (typeof (container as any).scrollTo === 'function') {
+      container.scrollTo({ top, behavior: 'smooth' });
+    } else {
+      container.scrollTop = top;
+    }
   }
 }, {immediate: true});
 </script>

@@ -20,7 +20,7 @@ export function useStepRunner<TState>(opts: {
   interpreter?: StepInterpreter<TState>;
 }) {
   const fps = opts.fps ?? 60;
-  const strategy: SnapshotStrategy = opts.snapshotStrategy ?? 'none';
+  const strategy: SnapshotStrategy = opts.snapshotStrategy ?? 'full';
   const steps = opts.steps;
 
   const speed = ref(1); // 0.25x ~ 4x

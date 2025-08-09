@@ -1,19 +1,21 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useStepRunner } from '@/composables/useStepRunner'
 import type { Step } from '@/types/step';
 
 describe('useStepRunner', () => {
   it('steps forward/back and sets speed', () => {
-    const onTick = vi.fn()
-    const runner = useStepRunner({ onTick })
-    expect(runner.stepIndex).toBe(0)
-    runner.stepForward()
-    expect(runner.stepIndex).toBe(1)
-    runner.stepBack()
-    expect(runner.stepIndex).toBe(0)
-    runner.setSpeed(2)
-    expect(runner.speed).toBe(2)
-    expect(onTick).toHaveBeenCalled()
+    const steps: Step[] = [
+      { type: 'visit', payload: { i: 0 }, pc: [1], explain: 'v0' },
+      { type: 'visit', payload: { i: 1 }, pc: [1], explain: 'v1' },
+    ];
+    const runner = useStepRunner({ initialState: {}, steps, snapshotStrategy: 'full' });
+    expect(runner.index.value).toBe(0);
+    runner.stepForward();
+    expect(runner.index.value).toBe(1);
+    runner.stepBack();
+    expect(runner.index.value).toBe(0);
+    runner.setSpeed(2);
+    expect(runner.speed.value).toBe(2);
   })
 })
 describe('useStepRunner', () => {

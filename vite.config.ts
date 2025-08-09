@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  base: '/',
+  base: '/Algo/',
 
   plugins: [
     vue(),
@@ -19,10 +19,11 @@ export default defineConfig({
         theme_color: '#0ea5e9',
         background_color: '#0b1220',
         display: 'standalone',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         icons: [
-          { src: '/icons/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: '/icons/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' }
+          { src: 'icons/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+          { src: 'icons/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' }
         ]
       },
       workbox: {

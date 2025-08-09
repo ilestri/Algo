@@ -15,3 +15,7 @@
 - Git
 
 ## 2) 설치/실행
+
+- `npm install`
+- `npm run dev`
+- `npm run build`

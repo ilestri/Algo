@@ -3,10 +3,9 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig(({ mode }) => {
-  const isProd = mode === 'production'
+export default defineConfig(() => {
   return {
-    base: isProd ? '/algo-visualizer/' : '/', // dev: '/', prod: '/algo-visualizer/'
+    base: '/',
     plugins: [
       vue(),
       VitePWA({

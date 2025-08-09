@@ -40,6 +40,7 @@ export default defineConfig(({ mode }) => {
     },
     server: { port: 5173 },
     build: { target: 'es2022' },
+    worker: { format: 'es' },
     test: {
       environment: 'jsdom',
       globals: true,

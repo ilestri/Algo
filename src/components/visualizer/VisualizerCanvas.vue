@@ -14,6 +14,7 @@
           :highlightRange="state.highlightRange || null"
           :pivotIndex="state.pivotIndex ?? null"
           :pointers="state.pointers || []"
+          :values="state.array || []"
         />
       </g>
 

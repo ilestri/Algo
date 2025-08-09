@@ -194,9 +194,32 @@ const inputForm = computed(() => {
 });
 const inputFormProps = computed(() => {
   const cat = currentMeta.value?.category;
-  if (cat === 'graph') return {n: 5, list: {}, weighted: true};
-  if (cat === 'tree') return {initial: currentMeta.value?.defaultInput?.keys ?? []};
-  return {initial: currentMeta.value?.defaultInput?.array ?? []};
+  if (cat === 'graph') return { n: 5, list: {}, weighted: true };
+  if (cat === 'tree') {
+    const keys = Array.isArray((input as any)?.keys)
+      ? (input as any).keys
+      : (currentMeta.value as any)?.defaultInput?.keys ?? [];
+    return { initial: keys };
+  }
+  const id = currentMeta.value?.id;
+  if (id === 'searching/binary') {
+    const arr = Array.isArray((input as any)?.array)
+      ? (input as any).array
+      : (currentMeta.value as any)?.defaultInput?.array ?? [];
+    const curKey = Number((input as any)?.key);
+    const initialKey = Number.isFinite(curKey)
+      ? curKey
+      : (currentMeta.value as any)?.defaultInput?.key;
+    return {
+      initial: arr,
+      initialKey,
+      requireKey: true
+    };
+  }
+  const arr = Array.isArray((input as any)?.array)
+    ? (input as any).array
+    : (currentMeta.value as any)?.defaultInput?.array ?? [];
+  return { initial: arr };
 });
 
 // 시각화 상태 및 모드(간이)
@@ -206,7 +229,8 @@ const state = reactive<any>({
   sorted: new Set<number>(),
   highlightRange: null,
   pivotIndex: null,
-  pointers: [] as Array<{ name: string, index: number }>
+  pointers: [] as Array<{ name: string, index: number }>,
+  found: null
 });
 const canvasMode = computed<'array' | 'graph' | 'tree'>(() => {
   const cat = currentMeta.value?.category;
@@ -231,6 +255,7 @@ const metrics = reactive({
   dequeues: 0
 });
 const metricsTimeline = ref<Array<Partial<typeof metrics>>>([]);
+
 
 // 간이 인터프리터(배열·그래프 공통 일부 처리)
 const interpreter = {
@@ -279,7 +304,20 @@ const interpreter = {
         break;
       }
       case 'markSorted': {
+        // 안전 보정: Set이 아닌 형태로 복원/직렬화된 경우 Set으로 재구성
+        if (!(s.sorted instanceof Set) || typeof s.sorted?.has !== 'function') {
+          const asArray = Array.isArray(s.sorted) ? s.sorted : [];
+          s.sorted = new Set<number>(asArray);
+        }
         s.sorted.add(step.payload.i);
+        break;
+      }
+      case 'visit': {
+        const { i } = step.payload || {};
+        if (Number.isInteger(i)) {
+          s.found = i;
+          s.highlight = [i];
+        }
         break;
       }
       default:
@@ -314,7 +352,7 @@ const {
 } = useStepRunner({
   initialState: state,
   steps: steps.value,
-  fps: 60,
+  fps: 2,
   snapshotStrategy: strategy.value,
   interpreter,
 });
@@ -371,6 +409,7 @@ async function buildAndLoadSteps(shouldPatch: boolean = true) {
   state.highlightRange = null;
   state.pivotIndex = null;
   state.pointers = [];
+  state.found = null;
 
   // 단계 계산(대용량은 워커 사용)
   try {
@@ -379,12 +418,15 @@ async function buildAndLoadSteps(shouldPatch: boolean = true) {
         normalized,
         () => mod.stepsOf(normalized)
     );
-    steps.value = Array.isArray(generated) ? generated : [];
+    // 중요: 러너가 참조하는 배열 인스턴스를 유지하기 위해 제자리 갱신
+    const newSteps = Array.isArray(generated) ? generated : [];
+    steps.value.splice(0, steps.value.length, ...newSteps);
   } catch {
-    steps.value = [];
+    // 실패 시에도 동일 인스턴스를 유지하며 비우기
+    steps.value.splice(0, steps.value.length);
   }
 
-  // 메트릭/타임라인 초기화
+  // 메트릭/타임라인/설명 초기화
   metrics.steps = 0;
   metrics.compares = 0;
   metrics.swaps = 0;
@@ -393,6 +435,12 @@ async function buildAndLoadSteps(shouldPatch: boolean = true) {
   metrics.enqueues = 0;
   metrics.dequeues = 0;
   metricsTimeline.value = [];
+
+  // 의사코드/설명 리셋
+  pc.value = [];
+  explain.value = '';
+  session.pc = pc.value;
+  session.explain = explain.value;
 
   // 러너 초기화
   try {
@@ -409,14 +457,31 @@ async function buildAndLoadSteps(shouldPatch: boolean = true) {
   }
 }
 
-// 폼 제출 핸들러
-function onSubmitInput(values: number[]) {
+// 폼 제출 핸들러(배열 또는 객체 페이로드 모두 지원)
+function onSubmitInput(payload: any) {
   const meta = currentMeta.value;
   if (!meta) return;
-  if (meta.category === 'sorting' || meta.category === 'searching') {
-    (input as any).array = Array.isArray(values) ? values.slice() : [];
+
+  // 배열만 전달되는 케이스(정렬 등)
+  if (Array.isArray(payload)) {
+    (input as any).array = payload.slice();
+    buildAndLoadSteps(true);
+    return;
   }
-  // 필요한 경우 다른 카테고리 확장 가능
+
+  // 객체 형태(이진 탐색 시): { array, key, action }
+  const arr = Array.isArray(payload?.array) ? payload.array.slice() : [];
+  const key = Number(payload?.key);
+  const action = payload?.action as ('normal' | 'autoSort' | undefined);
+
+  // 자동 정렬 선택 시 정렬 후 적용
+  const finalArray = action === 'autoSort' ? arr.slice().sort((a, b) => a - b) : arr;
+
+  // 입력 반영
+  (input as any).array = finalArray;
+  if (Number.isFinite(key)) (input as any).key = key;
+
+  // 단계 재빌드(내부에서 URL 패치 수행)
   buildAndLoadSteps(true);
 }
 

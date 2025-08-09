@@ -4,7 +4,8 @@ import { computed } from 'vue';
 const props = defineProps<{
   values: number[];
   active?: number[];
-  sorted?: Set<number>;
+  // 다양한 형태로 들어오는 정렬 표시를 허용(Set, 배열, 맵 형태 등)
+  sorted?: any;
   ariaLabel?: string;
 }>();
 const label = computed(() => props.ariaLabel ?? `막대 그래프: ${props.values.length}개 원소`);
@@ -26,6 +27,16 @@ const maxVal = computed(() => {
 });
 const usableHeight = computed(() => BASELINE_Y - TOP_PADDING);
 const scale = computed(() => usableHeight.value / maxVal.value);
+
+// 정렬 여부 안전 판별
+function isSortedIndex(i: number): boolean {
+  const s = props.sorted as any;
+  if (!s) return false;
+  if (typeof s.has === 'function') return !!s.has(i);           // Set 또는 유사 Set
+  if (Array.isArray(s)) return s.includes(i);                   // 배열
+  if (typeof s === 'object') return !!s[i];                     // 맵/객체
+  return false;
+}
 </script>
 <template>
   <g role="img" :aria-label="label" tabindex="0" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 rounded-sm">
@@ -38,7 +49,7 @@ const scale = computed(() => usableHeight.value / maxVal.value);
         :data-value="v"
         :class="[
           'transition-all',
-          (props.active?.includes(i) ? 'fill-blue-500' : (props.sorted?.has(i) ? 'fill-green-500' : 'fill-slate-400'))
+          (props.active?.includes(i) ? 'fill-blue-500' : (isSortedIndex(i) ? 'fill-green-500' : 'fill-slate-400'))
         ]"
       />
       <!-- 막대 하단 라벨 -->

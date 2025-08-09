@@ -1,6 +1,12 @@
 <template>
-  <div v-if="open" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-4 w-full max-w-md" v-trap-focus role="dialog" aria-modal="true" aria-label="오류 안내">
+  <div v-if="open" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+    <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-4 w-full max-w-md"
+        v-trap-focus
+        role="dialog"
+        aria-modal="true"
+        aria-label="오류 안내"
+    >
       <header class="flex items-center justify-between mb-2">
         <h3 class="font-semibold">오류가 발생했습니다</h3>
         <button class="btn-ghost" @click="$emit('close')" aria-label="닫기">×</button>

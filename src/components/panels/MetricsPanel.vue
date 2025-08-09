@@ -35,7 +35,7 @@
 
     <!-- 타임라인(선형 차트) -->
     <div class="mt-3">
-      <v-chart class="h-6" :option="lineOption" autoresize />
+      <v-chart class="h-24" :option="lineOption" autoresize />
     </div>
   </div>
 </template>

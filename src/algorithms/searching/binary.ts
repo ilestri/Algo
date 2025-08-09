@@ -76,16 +76,21 @@ import type { AlgoDescriptor } from '@/types/step';
  * 6:   else: r ← m-1
  */
 export function stepsOf(input: { array: number[]; key: number }): Step[] {
-  const a = input.array.slice().sort((x, y) => x - y);
+  // 입력을 그대로 사용(자동 정렬하지 않음)
+  const a = input.array.slice();
   const key = input.key;
   const steps: Step[] = [];
 
   let l = 0, r = a.length - 1;
+  // 초기 포인터/구간 표시
+  steps.push({ type: 'pointer', payload: { name: 'l', index: l }, pc: [1], explain: `좌측 경계 초기화 l=${l}` });
+  steps.push({ type: 'pointer', payload: { name: 'r', index: r }, pc: [1], explain: `우측 경계 초기화 r=${r}` });
   steps.push({ type: 'highlightRange', payload: { l, r }, pc: [1], explain: `탐색 구간 초기화 [${l}, ${r}]` });
 
   while (l <= r) {
     steps.push({ type: 'highlightRange', payload: { l, r }, pc: [2], explain: `현재 구간 [${l}, ${r}]` });
     const m = (l + r) >> 1;
+    steps.push({ type: 'pointer', payload: { name: 'm', index: m }, pc: [3], explain: `중앙 인덱스 설정 m=${m}` });
     steps.push({ type: 'compare', payload: { i: m }, pc: [3, 4], explain: `중앙 인덱스 ${m} 값과 키 비교` });
     if (a[m] === key) {
       steps.push({ type: 'visit', payload: { i: m }, pc: [4], explain: `키 발견: 인덱스 ${m}` });

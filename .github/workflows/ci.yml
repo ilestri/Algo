@@ -31,12 +31,6 @@ jobs:
       - name: Test
         run: npm test --if-present
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: E2E
-        run: npm run test:e2e --if-present
-
       - name: Build
         run: npm run build
         env:

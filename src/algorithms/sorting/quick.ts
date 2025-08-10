@@ -1,5 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
-import {createStep, markSorted} from '@/lib/steps'
+import {pushStep, markSorted} from '@/lib/steps'
 import { normalizeArrayInput } from '@/lib/normalize-array-input'
 import {swap} from '@/lib/array-utils'
 
@@ -18,26 +18,18 @@ export function stepsOf(input: { array: number[] }): Step[] {
   const steps: Step[] = []
 
   function partition(l: number, r: number, p: number) {
-    steps.push(
-        createStep('highlightRange', {l, r}, [3], `구간 [${l}, ${r}] 파티션`),
-    )
+    pushStep(steps, 'highlightRange', {l, r}, [3], `구간 [${l}, ${r}] 파티션`)
     let i = l
     for (let j = l; j < r; j++) {
-      steps.push(
-          createStep('compare', {i: j, j: p}, [5], `인덱스 ${j}와 피벗 ${p} 비교`),
-      )
+      pushStep(steps, 'compare', {i: j, j: p}, [5], `인덱스 ${j}와 피벗 ${p} 비교`)
       if (arr[j] < arr[p]) {
         swap(arr, i, j)
-        steps.push(
-            createStep('swap', {i, j}, [6], `인덱스 ${i}와 ${j} 교환`),
-        )
+        pushStep(steps, 'swap', {i, j}, [6], `인덱스 ${i}와 ${j} 교환`)
         i++
       }
     }
     swap(arr, i, p)
-    steps.push(
-        createStep('swap', {i, j: p}, [6], `인덱스 ${i}와 ${p} 교환`),
-    )
+    pushStep(steps, 'swap', {i, j: p}, [6], `인덱스 ${i}와 ${p} 교환`)
     return i
   }
 

@@ -1,5 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step';
-import {createStep} from '@/lib/steps';
+import {pushStep} from '@/lib/steps';
 
 /**
  * @complexity 시간: O(h), 공간: O(1) ~ O(h)
@@ -13,13 +13,13 @@ export function stepsOf(input: { keys: number[]; search?: number; remove?: numbe
   const steps: Step[] = [];
 
   function visit(val: number, pc: number[], explain: string) {
-    steps.push(createStep('visit', {value: val}, pc, explain));
+    pushStep(steps, 'visit', {value: val}, pc, explain);
   }
 
   // 삽입 시퀀스
   for (const k of keys) {
     visit(k, [1], `키 ${k} 삽입 탐색`);
-    steps.push(createStep('insert', {key: k}, [1], `키 ${k} 삽입`));
+    pushStep(steps, 'insert', {key: k}, [1], `키 ${k} 삽입`);
   }
 
   // 검색
@@ -31,7 +31,7 @@ export function stepsOf(input: { keys: number[]; search?: number; remove?: numbe
   // 삭제
   if (Number.isFinite(input.remove as number)) {
     const d = input.remove as number;
-    steps.push(createStep('delete', {key: d}, [3], `키 ${d} 삭제`));
+    pushStep(steps, 'delete', {key: d}, [3], `키 ${d} 삭제`);
   }
 
   return steps;
@@ -88,35 +88,31 @@ let nextId = 1
 
 function insert(root: Node | undefined, key: number, steps: Step[]) {
   if (!root) {
-    steps.push(createStep('insert', {value: key}, [1], '루트 삽입'))
+    pushStep(steps, 'insert', {value: key}, [1], '루트 삽입')
     return {id: nextId++, value: key}
   }
   let cur = root
-  steps.push(createStep('visit', {id: cur.id}, [2, 3], `노드 방문 ${cur.value}`))
+  pushStep(steps, 'visit', {id: cur.id}, [2, 3], `노드 방문 ${cur.value}`)
   for (; ;) {
     if (key < cur.value) {
-      steps.push(createStep('compare', {cur: cur.value, key}, [4], '왼쪽 비교'))
+      pushStep(steps, 'compare', {cur: cur.value, key}, [4], '왼쪽 비교')
       if (!cur.left) {
         cur.left = {id: nextId++, value: key}
-        steps.push(
-            createStep('insert', {parent: cur.id, side: 'L', value: key}, [5], '왼쪽 삽입'),
-        )
+        pushStep(steps, 'insert', {parent: cur.id, side: 'L', value: key}, [5], '왼쪽 삽입')
         break
       } else {
         cur = cur.left
-        steps.push(createStep('visit', {id: cur.id}, [6], `이동`))
+        pushStep(steps, 'visit', {id: cur.id}, [6], `이동`)
       }
     } else {
-      steps.push(createStep('compare', {cur: cur.value, key}, [7], '오른쪽 비교'))
+      pushStep(steps, 'compare', {cur: cur.value, key}, [7], '오른쪽 비교')
       if (!cur.right) {
         cur.right = {id: nextId++, value: key}
-        steps.push(
-            createStep('insert', {parent: cur.id, side: 'R', value: key}, [8], '오른쪽 삽입'),
-        )
+        pushStep(steps, 'insert', {parent: cur.id, side: 'R', value: key}, [8], '오른쪽 삽입')
         break
       } else {
         cur = cur.right
-        steps.push(createStep('visit', {id: cur.id}, [9], `이동`))
+        pushStep(steps, 'visit', {id: cur.id}, [9], `이동`)
       }
     }
   }

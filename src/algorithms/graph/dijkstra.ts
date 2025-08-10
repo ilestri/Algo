@@ -1,7 +1,7 @@
 import type {Step, AlgoDescriptor} from '@/types/step';
 import type {AdjList} from '@/lib/graph-utils';
 import {normalizeGraphInput} from './utils';
-import {createStep} from '@/lib/steps';
+import {pushStep} from '@/lib/steps';
 import {PriorityQueue} from '@/lib/priority-queue';
 
 /**
@@ -24,21 +24,21 @@ export function stepsOf(input: { n: number; adj: AdjList; start: number }): Step
 
   dist[start] = 0;
   pq.push({d: 0, u: start});
-  steps.push(createStep('enqueue', {v: start}, [1], `시작 정점 ${start} 거리 0, PQ 삽입`));
+  pushStep(steps, 'enqueue', {v: start}, [1], `시작 정점 ${start} 거리 0, PQ 삽입`);
 
   while (pq.length) {
     const cur = pq.pop()!;
-    steps.push(createStep('dequeue', {v: cur.u}, [3], `정점 ${cur.u} 추출`));
+    pushStep(steps, 'dequeue', {v: cur.u}, [3], `정점 ${cur.u} 추출`);
     if (used[cur.u]) continue;
     used[cur.u] = true;
     for (const {v, w} of (adj[cur.u] || [])) {
       const nd = (dist[cur.u] === INF ? 0 : dist[cur.u]) + (w ?? 1);
-      steps.push(createStep('compare', {u: cur.u, v, w}, [4], `간선 ${cur.u}→${v} 이완 검사`));
+      pushStep(steps, 'compare', {u: cur.u, v, w}, [4], `간선 ${cur.u}→${v} 이완 검사`);
       if (dist[v] > nd) {
         dist[v] = nd;
-        steps.push(createStep('relax', {v, dist: nd}, [5], `정점 ${v} 거리 갱신: ${nd}`));
+        pushStep(steps, 'relax', {v, dist: nd}, [5], `정점 ${v} 거리 갱신: ${nd}`);
         pq.push({d: nd, u: v});
-        steps.push(createStep('enqueue', {v}, [5], `정점 ${v} PQ 삽입`));
+        pushStep(steps, 'enqueue', {v}, [5], `정점 ${v} PQ 삽입`);
       }
     }
   }

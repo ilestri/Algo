@@ -1,7 +1,7 @@
 import type {Step, AlgoDescriptor} from '@/types/step';
 import type {AdjList} from '@/lib/graph-utils';
 import {normalizeGraphInput} from './utils';
-import {createStep} from '@/lib/steps';
+import {pushStep} from '@/lib/steps';
 
 /**
  * @complexity 시간: O(V+E), 공간: O(V)
@@ -18,17 +18,17 @@ export function stepsOf(input: { n: number; adj: AdjList; start: number }): Step
 
   function dfs(u: number) {
     visited[u] = true;
-    steps.push(createStep('visit', {v: u}, [2], `정점 ${u} 방문`));
+    pushStep(steps, 'visit', {v: u}, [2], `정점 ${u} 방문`);
     for (const {v} of (adj[u] || [])) {
-      steps.push(createStep('compare', {u, v}, [3], `간선 ${u}→${v} 확인`));
+      pushStep(steps, 'compare', {u, v}, [3], `간선 ${u}→${v} 확인`);
       if (!visited[v]) {
-        steps.push(createStep('highlight', {v}, [4], `정점 ${v} 재귀 탐색`));
+        pushStep(steps, 'highlight', {v}, [4], `정점 ${v} 재귀 탐색`);
         dfs(v);
       }
     }
   }
 
-  steps.push(createStep('highlight', {v: start}, [1], `시작 정점 ${start}`));
+  pushStep(steps, 'highlight', {v: start}, [1], `시작 정점 ${start}`);
   dfs(start);
   return steps;
 }

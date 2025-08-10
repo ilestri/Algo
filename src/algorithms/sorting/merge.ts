@@ -1,5 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
-import {createStep, markSorted} from '@/lib/steps'
+import {pushStep, markSorted} from '@/lib/steps'
 import { normalizeArrayInput } from '@/lib/normalize-array-input'
 
 /**
@@ -17,9 +17,7 @@ export function stepsOf(input: { array: number[] }): Step[] {
   const steps: Step[] = []
 
   function merge(l: number, m: number, r: number) {
-    steps.push(
-        createStep('highlightRange', {l, r}, [6], `병합 구간 [${l}, ${r}]`),
-    )
+    pushStep(steps, 'highlightRange', {l, r}, [6], `병합 구간 [${l}, ${r}]`)
 
     const L = arr.slice(l, m + 1)
     const R = arr.slice(m + 1, r + 1)
@@ -29,25 +27,20 @@ export function stepsOf(input: { array: number[] }): Step[] {
     let k = l
 
     while (i < L.length && j < R.length) {
-      steps.push(
-          createStep(
-              'compare',
-              {i: l + i, j: m + 1 + j},
-              [6],
-              `인덱스 ${l + i}와 ${m + 1 + j} 비교`,
-          ),
+      pushStep(
+        steps,
+        'compare',
+        {i: l + i, j: m + 1 + j},
+        [6],
+        `인덱스 ${l + i}와 ${m + 1 + j} 비교`,
       )
       if (L[i] <= R[j]) {
         arr[k] = L[i]
-        steps.push(
-            createStep('setValue', {index: k, value: L[i]}, [6], `A[${k}] ← ${L[i]}`),
-        )
+        pushStep(steps, 'setValue', {index: k, value: L[i]}, [6], `A[${k}] ← ${L[i]}`)
         i++
       } else {
         arr[k] = R[j]
-        steps.push(
-            createStep('setValue', {index: k, value: R[j]}, [6], `A[${k}] ← ${R[j]}`),
-        )
+        pushStep(steps, 'setValue', {index: k, value: R[j]}, [6], `A[${k}] ← ${R[j]}`)
         j++
       }
       k++
@@ -55,18 +48,14 @@ export function stepsOf(input: { array: number[] }): Step[] {
 
     while (i < L.length) {
       arr[k] = L[i]
-      steps.push(
-          createStep('setValue', {index: k, value: L[i]}, [6], `A[${k}] ← ${L[i]}`),
-      )
+      pushStep(steps, 'setValue', {index: k, value: L[i]}, [6], `A[${k}] ← ${L[i]}`)
       i++
       k++
     }
 
     while (j < R.length) {
       arr[k] = R[j]
-      steps.push(
-          createStep('setValue', {index: k, value: R[j]}, [6], `A[${k}] ← ${R[j]}`),
-      )
+      pushStep(steps, 'setValue', {index: k, value: R[j]}, [6], `A[${k}] ← ${R[j]}`)
       j++
       k++
     }

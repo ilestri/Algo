@@ -1,5 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
-import {createStep} from '@/lib/steps'
+import {pushStep} from '@/lib/steps'
 
 /**
  Pseudocode:
@@ -87,23 +87,23 @@ export function stepsOf(input: { array: number[]; key: number }): Step[] {
 
   let l = 0, r = a.length - 1;
   // 초기 포인터/구간 표시
-  steps.push(createStep('pointer', {name: 'l', index: l}, [1], `좌측 경계 초기화 l=${l}`));
-  steps.push(createStep('pointer', {name: 'r', index: r}, [1], `우측 경계 초기화 r=${r}`));
-  steps.push(createStep('highlightRange', {l, r}, [1], `탐색 구간 초기화 [${l}, ${r}]`));
+  pushStep(steps, 'pointer', {name: 'l', index: l}, [1], `좌측 경계 초기화 l=${l}`)
+  pushStep(steps, 'pointer', {name: 'r', index: r}, [1], `우측 경계 초기화 r=${r}`)
+  pushStep(steps, 'highlightRange', {l, r}, [1], `탐색 구간 초기화 [${l}, ${r}]`)
 
   while (l <= r) {
-    steps.push(createStep('highlightRange', {l, r}, [2], `현재 구간 [${l}, ${r}]`));
+    pushStep(steps, 'highlightRange', {l, r}, [2], `현재 구간 [${l}, ${r}]`)
     const m = (l + r) >> 1;
-    steps.push(createStep('pointer', {name: 'm', index: m}, [3], `중앙 인덱스 설정 m=${m}`));
-    steps.push(createStep('compare', {i: m}, [3, 4], `중앙 인덱스 ${m} 값과 키 비교`));
+    pushStep(steps, 'pointer', {name: 'm', index: m}, [3], `중앙 인덱스 설정 m=${m}`)
+    pushStep(steps, 'compare', {i: m}, [3, 4], `중앙 인덱스 ${m} 값과 키 비교`)
     if (a[m] === key) {
-      steps.push(createStep('visit', {i: m}, [4], `키 발견: 인덱스 ${m}`));
+      pushStep(steps, 'visit', {i: m}, [4], `키 발견: 인덱스 ${m}`)
       break;
     } else if (a[m] < key) {
-      steps.push(createStep('pointer', {name: 'l', index: m + 1}, [5], `좌측 경계 이동: l=${m + 1}`));
+      pushStep(steps, 'pointer', {name: 'l', index: m + 1}, [5], `좌측 경계 이동: l=${m + 1}`)
       l = m + 1;
     } else {
-      steps.push(createStep('pointer', {name: 'r', index: m - 1}, [6], `우측 경계 이동: r=${m - 1}`));
+      pushStep(steps, 'pointer', {name: 'r', index: m - 1}, [6], `우측 경계 이동: r=${m - 1}`)
       r = m - 1;
     }
   }

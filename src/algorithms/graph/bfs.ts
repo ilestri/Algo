@@ -1,7 +1,7 @@
 import type {Step, AlgoDescriptor} from '@/types/step';
 import type {AdjList} from '@/lib/graph-utils';
 import {normalizeGraphInput} from './utils';
-import {createStep} from '@/lib/steps';
+import {pushStep} from '@/lib/steps';
 import {Queue} from '@/lib/queue';
 
 /**
@@ -20,20 +20,20 @@ export function stepsOf(input: { n: number; adj: AdjList; start: number }): Step
   const steps: Step[] = [];
 
   q.enqueue(start);
-  steps.push(createStep('enqueue', {v: start}, [1], `시작 정점 ${start} 큐에 삽입`));
+  pushStep(steps, 'enqueue', {v: start}, [1], `시작 정점 ${start} 큐에 삽입`);
   visited[start] = true;
 
   while (q.length) {
-    steps.push(createStep('compare', {size: q.length}, [2], `큐 크기 ${q.length}`));
+    pushStep(steps, 'compare', {size: q.length}, [2], `큐 크기 ${q.length}`);
     const u = q.dequeue()!;
-    steps.push(createStep('dequeue', {v: u}, [3], `정점 ${u} 큐에서 제거`));
-    steps.push(createStep('visit', {v: u}, [3], `정점 ${u} 방문`));
+    pushStep(steps, 'dequeue', {v: u}, [3], `정점 ${u} 큐에서 제거`);
+    pushStep(steps, 'visit', {v: u}, [3], `정점 ${u} 방문`);
     for (const {v} of (adj[u] || [])) {
-      steps.push(createStep('compare', {u, v}, [4], `간선 ${u}→${v} 확인`));
+      pushStep(steps, 'compare', {u, v}, [4], `간선 ${u}→${v} 확인`);
       if (!visited[v]) {
         visited[v] = true;
         q.enqueue(v);
-        steps.push(createStep('enqueue', {v}, [5], `정점 ${v} 큐에 삽입`));
+        pushStep(steps, 'enqueue', {v}, [5], `정점 ${v} 큐에 삽입`);
       }
     }
   }

@@ -1,5 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
-import {createStep, markSorted} from '@/lib/steps'
+import {pushStep, markSorted} from '@/lib/steps'
 import { normalizeArrayInput } from '@/lib/normalize-array-input'
 import {swap} from '@/lib/array-utils'
 
@@ -19,40 +19,26 @@ export function stepsOf(input: { array: number[] }): Step[] {
 
   for (let i = 0; i < n - 1; i++) {
     let min = i
-    steps.push(
-        createStep('pointer', {name: 'i', index: i}, [1], `i=${i} 고정`),
-    )
-    steps.push(
-        createStep(
-            'pointer',
-            {name: 'min', index: min},
-            [2],
-            `최솟값 위치 초기화 min=${min}`,
-        ),
-    )
+    pushStep(steps, 'pointer', {name: 'i', index: i}, [1], `i=${i} 고정`)
+    pushStep(steps, 'pointer', {name: 'min', index: min}, [2], `최솟값 위치 초기화 min=${min}`)
 
     for (let j = i + 1; j < n; j++) {
-      steps.push(
-          createStep(
-              'compare',
-              {i: j, j: min},
-              [3, 4],
-              `A[${j}]와 A[${min}] 비교`,
-          ),
+      pushStep(
+        steps,
+        'compare',
+        {i: j, j: min},
+        [3, 4],
+        `A[${j}]와 A[${min}] 비교`,
       )
       if (arr[j] < arr[min]) {
         min = j
-        steps.push(
-            createStep('pointer', {name: 'min', index: min}, [4], `새 최솟값 min=${min}`),
-        )
+        pushStep(steps, 'pointer', {name: 'min', index: min}, [4], `새 최솟값 min=${min}`)
       }
     }
 
     if (min !== i) {
       swap(arr, i, min)
-      steps.push(
-          createStep('swap', {i, j: min}, [5], `A[${i}]와 A[${min}] 교환`),
-      )
+      pushStep(steps, 'swap', {i, j: min}, [5], `A[${i}]와 A[${min}] 교환`)
     }
   }
 

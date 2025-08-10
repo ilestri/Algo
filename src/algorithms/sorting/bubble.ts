@@ -1,5 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
-import {createStep, markSorted} from '@/lib/steps'
+import {pushStep, markSorted} from '@/lib/steps'
 import { normalizeArrayInput } from '@/lib/normalize-array-input'
 import {swap} from '@/lib/array-utils'
 
@@ -23,13 +23,9 @@ export function stepsOf(input: { array: number[] }): Step[] {
   for (let i = 0; i < n - 1; i++) {
     let swapped = false
     for (let j = 0; j < n - i - 1; j++) {
-      steps.push(
-          createStep('compare', {i: j, j: j + 1}, [4], `인덱스 ${j}와 ${j + 1} 비교`),
-      )
+      pushStep(steps, 'compare', {i: j, j: j + 1}, [4], `인덱스 ${j}와 ${j + 1} 비교`)
       if (arr[j] > arr[j + 1]) {
-        steps.push(
-            createStep('swap', {i: j, j: j + 1}, [5], '두 원소 교환'),
-        )
+        pushStep(steps, 'swap', {i: j, j: j + 1}, [5], '두 원소 교환')
         swap(arr, j, j + 1)
         swapped = true
       }

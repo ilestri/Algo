@@ -21,9 +21,9 @@ export class PriorityQueue<T> {
 
   private bubbleDown(idx: number): void {
     const last = this.heap.length - 1;
-    while (true) {
-      let left = idx * 2 + 1;
-      let right = idx * 2 + 2;
+    while (idx * 2 + 1 <= last) {
+      const left = idx * 2 + 1;
+      const right = idx * 2 + 2;
       let smallest = idx;
       if (left <= last && this.compare(this.heap[left], this.heap[smallest]) < 0) {
         smallest = left;

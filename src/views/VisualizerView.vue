@@ -89,6 +89,9 @@ import TreeInputForm from '@/components/forms/TreeInputForm.vue';
 import {useStepRunner} from '@/composables/useStepRunner';
 import {useA11yAnnouncements} from '@/composables/useA11yAnnouncements';
 import {useUrlState} from '@/composables/useUrlState';
+import {useUrlSync} from '@/composables/visualizer/useUrlSync';
+import {useVisualizerWorker} from '@/composables/visualizer/useWorker';
+import {useKeyboard} from '@/composables/visualizer/useKeyboard';
 import type {Step, AlgoModule, AlgoDescriptor, SnapshotStrategy} from '@/types/step';
 import {initAlgorithms, listDescriptors, getAlgorithm} from '@/algorithms/registry';
 import {useSessionStore} from '@/stores/session';
@@ -115,74 +118,14 @@ onMounted(async () => {
   }
 });
 
-// URL 상태 동기화(algo + 압축 s)
+// URL 상태
 const {state: urlState, patch} = useUrlState();
-watch(selectedId, (id) => {
-  // 전역 알고리즘 선택 반영
-  global.algoId = id;
-  // 직렬화 가능한 입력 스냅샷과 speed 값으로 동기화
-  const plainInput = JSON.parse(JSON.stringify(input));
-  patch({algo: id, input: plainInput, speed: speed.value});
-});
-
-// URL → 내부 상태 동기화
-watch(() => urlState.value.algo, (nv) => {
-  if (nv && nv !== selectedId.value) {
-    selectedId.value = nv;
-  }
-}, {immediate: true});
-
-// URL 입력이 바뀌면 내부 입력에 반영하고 단계 재생성
-watch(() => urlState.value.input, (nv) => {
-  if (!nv) return;
-  const normalize = (currentMeta.value as any)?.normalizeInput ?? ((x: any) => x);
-  const normalized = normalize(nv);
-  // input 객체를 안전하게 교체
-  Object.keys(input).forEach(k => delete (input as any)[k]);
-  Object.assign(input, JSON.parse(JSON.stringify(normalized)));
-  // URL에서 온 변경은 다시 patch하지 않도록
-  if (typeof buildAndLoadSteps === 'function') {
-    buildAndLoadSteps(false);
-  }
-}, {deep: true});
-
-// 워커 전환 컴포저블
-import {useStepsWorker} from '@/composables/useStepsWorker';
-
-const stepsWorker = useStepsWorker({bigArray: 5000, bigNodes: 1000});
 
 // 현재 선택된 알고리즘 모듈
 const currentModule = computed<AlgoModule | undefined>(() => getAlgorithm(selectedId.value));
 const currentMeta = computed<AlgoDescriptor | null>(() => currentModule.value?.descriptor ?? null);
 const strategy = computed<SnapshotStrategy>(() => currentModule.value?.snapshotStrategy ?? 'full');
 
-// 초기 URL 입력을 currentMeta 초기화 이후 1회 적용
-onMounted(() => {
-  const nv = urlState.value.input;
-  if (!nv) return;
-  const normalize = (currentMeta.value as any)?.normalizeInput ?? ((x: any) => x);
-  const normalized = normalize(nv);
-  Object.keys(input).forEach(k => delete (input as any)[k]);
-  Object.assign(input, JSON.parse(JSON.stringify(normalized)));
-  if (typeof buildAndLoadSteps === 'function') {
-    buildAndLoadSteps(false);
-  }
-});
-
-// 알고리즘 메타 변경 시 입력 초기화 및 URL 동기화
-watch(() => currentMeta.value, (meta) => {
-  if (!meta) return;
-  // defaultInput으로 입력 리셋
-  const def = meta.defaultInput as any;
-  Object.keys(input).forEach(k => delete (input as any)[k]);
-  Object.assign(input, JSON.parse(JSON.stringify(def)));
-  // URL 동기화(속도는 유지)
-  patch({algo: selectedId.value, input: JSON.parse(JSON.stringify(input))});
-  // 단계/상태 재생성
-  if (typeof buildAndLoadSteps === 'function') {
-    buildAndLoadSteps(false);
-  }
-});
 
 // 입력 및 입력 폼
 const input = reactive<any>({});
@@ -400,76 +343,43 @@ on('done', () => {
   // 완료
 });
 
+let buildAndLoadSteps: (shouldPatch?: boolean) => Promise<void>;
+
+// 워커 연동
+buildAndLoadSteps = useVisualizerWorker({
+  currentModule,
+  currentMeta,
+  input,
+  state,
+  steps,
+  metrics,
+  metricsTimeline,
+  pc,
+  explain,
+  session,
+  reset,
+  jumpTo,
+  patch,
+  selectedId,
+  speed,
+}).buildAndLoadSteps;
+
+useUrlSync({
+  selectedId,
+  input,
+  speed,
+  currentMeta,
+  buildAndLoadSteps,
+  urlState,
+  patch,
+  patchSelected: (id: string) => {
+    global.algoId = id;
+  },
+});
+
 // 실행 가능한 상태 관리
 const canBack = computed(() => strategy.value !== 'none' && index.value > 0);
 const canForward = computed(() => index.value < steps.value.length);
-
-// 단계/상태 재생성 유틸
-async function buildAndLoadSteps(shouldPatch: boolean = true) {
-  const mod = currentModule.value;
-  const meta = currentMeta.value as any;
-  if (!mod || !meta) return;
-
-  // 입력 정규화
-  const normalize = meta.normalizeInput ?? ((x: any) => x);
-  const normalized = normalize(JSON.parse(JSON.stringify(input)));
-
-  // 시각화 상태 초기화
-  if (meta.category === 'sorting' || meta.category === 'searching') {
-    state.array = Array.isArray(normalized.array) ? normalized.array.slice() : [];
-  }
-  state.highlight = [];
-  state.sorted = new Set<number>();
-  state.highlightRange = null;
-  state.pivotIndex = null;
-  state.pointers = [];
-  state.found = null;
-
-  // 단계 계산(대용량은 워커 사용)
-  try {
-    const generated: Step[] = await stepsWorker.generate(
-        mod.descriptor.id,
-        normalized,
-        () => mod.stepsOf(normalized)
-    );
-    // 중요: 러너가 참조하는 배열 인스턴스를 유지하기 위해 제자리 갱신
-    const newSteps = Array.isArray(generated) ? generated : [];
-    steps.value.splice(0, steps.value.length, ...newSteps);
-  } catch {
-    // 실패 시에도 동일 인스턴스를 유지하며 비우기
-    steps.value.splice(0, steps.value.length);
-  }
-
-  // 메트릭/타임라인/설명 초기화
-  metrics.steps = 0;
-  metrics.compares = 0;
-  metrics.swaps = 0;
-  metrics.visits = 0;
-  metrics.relaxes = 0;
-  metrics.enqueues = 0;
-  metrics.dequeues = 0;
-  metricsTimeline.value = [];
-
-  // 의사코드/설명 리셋
-  pc.value = [];
-  explain.value = '';
-  session.pc = pc.value;
-  session.explain = explain.value;
-
-  // 러너 초기화
-  try {
-    reset();
-    jumpTo(0);
-  } catch {
-    // no-op
-  }
-
-  // URL 패치
-  if (shouldPatch) {
-    const plainInput = JSON.parse(JSON.stringify(input));
-    patch({algo: selectedId.value, input: plainInput, speed: speed.value});
-  }
-}
 
 // 폼 제출 핸들러(배열 또는 객체 페이로드 모두 지원)
 function onSubmitInput(payload: any) {
@@ -522,44 +432,13 @@ function onShared() {
   announcer.announce('공유 링크가 복사되었습니다.');
 }
 
-// 키보드 단축키
-const shortcutsOpen = ref(false);
-
-function onKey(e: KeyboardEvent) {
-  if (e.key === '?') {
-    shortcutsOpen.value = true;
-    e.preventDefault();
-    return;
-  }
-  if (e.key === ' ') {
-    togglePlay();
-    e.preventDefault();
-    return;
-  }
-  if (e.key === 'ArrowRight') {
-    if (e.shiftKey) stepForward(5); else stepForward(1);
-    e.preventDefault();
-    return;
-  }
-  if (e.key === 'ArrowLeft') {
-    if (e.shiftKey) stepBack(5); else stepBack(1);
-    e.preventDefault();
-    return;
-  }
-  if (e.key === 'Home') {
-    jumpTo(0);
-    e.preventDefault();
-    return;
-  }
-  if (e.key === 'End') {
-    jumpTo(steps.value.length);
-    e.preventDefault();
-    return;
-  }
-}
-
-onMounted(() => window.addEventListener('keydown', onKey));
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
+const {shortcutsOpen} = useKeyboard({
+  togglePlay,
+  stepForward,
+  stepBack,
+  jumpTo,
+  steps,
+});
 
 // 라이브 리전
 const announcer = useA11yAnnouncements();

@@ -194,22 +194,22 @@ const inputForm = computed(() => {
 });
 const inputFormProps = computed(() => {
   const cat = currentMeta.value?.category;
-  if (cat === 'graph') return { n: 5, list: {}, weighted: true };
+  if (cat === 'graph') return {n: 5, list: {}, weighted: true};
   if (cat === 'tree') {
     const keys = Array.isArray((input as any)?.keys)
-      ? (input as any).keys
-      : (currentMeta.value as any)?.defaultInput?.keys ?? [];
-    return { initial: keys };
+        ? (input as any).keys
+        : (currentMeta.value as any)?.defaultInput?.keys ?? [];
+    return {initial: keys};
   }
   const id = currentMeta.value?.id;
   if (id === 'searching/binary') {
     const arr = Array.isArray((input as any)?.array)
-      ? (input as any).array
-      : (currentMeta.value as any)?.defaultInput?.array ?? [];
+        ? (input as any).array
+        : (currentMeta.value as any)?.defaultInput?.array ?? [];
     const curKey = Number((input as any)?.key);
     const initialKey = Number.isFinite(curKey)
-      ? curKey
-      : (currentMeta.value as any)?.defaultInput?.key;
+        ? curKey
+        : (currentMeta.value as any)?.defaultInput?.key;
     return {
       initial: arr,
       initialKey,
@@ -217,9 +217,9 @@ const inputFormProps = computed(() => {
     };
   }
   const arr = Array.isArray((input as any)?.array)
-    ? (input as any).array
-    : (currentMeta.value as any)?.defaultInput?.array ?? [];
-  return { initial: arr };
+      ? (input as any).array
+      : (currentMeta.value as any)?.defaultInput?.array ?? [];
+  return {initial: arr};
 });
 
 // 시각화 상태 및 모드(간이)
@@ -313,7 +313,7 @@ const interpreter = {
         break;
       }
       case 'visit': {
-        const { i } = step.payload || {};
+        const {i} = step.payload || {};
         if (Number.isInteger(i)) {
           s.found = i;
           s.highlight = [i];
@@ -332,6 +332,20 @@ const interpreter = {
         if (!Array.isArray(s.dist)) s.dist = [];
         s.dist[last.v] = last.prev;
       }
+      return;
+    }
+    // 정렬 표시(step: markSorted) 되감기 시 마지막 하나만 제거
+    if (step.type === 'markSorted') {
+      // 안전 보정: Set이 아닌 경우 복원
+      if (!(s.sorted instanceof Set) || typeof s.sorted?.has !== 'function') {
+        const asArray = Array.isArray(s.sorted) ? s.sorted : [];
+        s.sorted = new Set<number>(asArray);
+      }
+      const i = step.payload?.i;
+      if (Number.isInteger(i)) {
+        s.sorted.delete(i);
+      }
+      return;
     }
   }
 };

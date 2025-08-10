@@ -49,7 +49,7 @@ function isSortedIndex(i: number): boolean {
         :data-value="v"
         :class="[
           'transition-all',
-          (props.active?.includes(i) ? 'fill-blue-500' : (isSortedIndex(i) ? 'fill-green-500' : 'fill-slate-400'))
+          (isSortedIndex(i) ? 'fill-green-500' : (props.active?.includes(i) ? 'fill-blue-500' : 'fill-slate-400'))
         ]"
       />
       <!-- 막대 하단 라벨 -->

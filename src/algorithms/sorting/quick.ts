@@ -1,36 +1,73 @@
-import type { Step, AlgoDescriptor } from '@/types/step';
+import type {Step, AlgoDescriptor} from '@/types/step'
 
 /**
- * @complexity best: O(n log n), average: O(n log n), worst: O(n^2), space: O(log n)
+ * @complexity 시간: 최선/평균 O(n log n), 최악 O(n^2), 공간: O(log n)
  * @pseudocodeIndex
  * 1: procedure quickSort(A, l, r)
- * 2: if l ≥ r: return
- * 3: p ← r; i ← l
- * 4: for j ← l to r-1:
- * 5: if A[j] < A[p]: swap A[i], A[j]; i ← i+1
- * 6: swap A[i], A[p]; quickSort(A, l, i-1); quickSort(A, i+1, r)
+ * 2:   if l ≥ r: return
+ * 3:   p ← r; i ← l
+ * 4:   for j ← l to r-1
+ * 5:     if A[j] < A[p]: swap A[i], A[j]; i ← i+1
+ * 6:   swap A[i], A[p]; quickSort(A, l, i-1); quickSort(A, i+1, r)
  */
-export function quickSortSteps(a: number[]): Step[] {
-  const arr = a.slice();
-  const steps: Step[] = [];
-  function swap(i:number,j:number){
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-    steps.push({type:'swap',payload:{i,j},pc:[6],explain:`인덱스 ${i}↔${j} 교환`});
+export function stepsOf(input: { array: number[] }): Step[] {
+  const arr = input.array.slice()
+  const steps: Step[] = []
+
+  function swap(i: number, j: number) {
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    steps.push({
+      type: 'swap',
+      payload: {i, j},
+      pc: [6],
+      explain: `인덱스 ${i}와 ${j} 교환`,
+    })
   }
-  function part(l:number,r:number,p:number){
-    steps.push({type:'highlightRange',payload:{l,r},pc:[2],explain:`구간 [${l},${r}] 파티션`});
-    let i=l;
-    for(let j=l;j<r;j++){
-      steps.push({type:'compare',payload:{j,p},pc:[4],explain:`피벗(${p})과 ${j} 비교`});
-      if(arr[j]<arr[p]){swap(i,j);i++;}
+
+  function partition(l: number, r: number, p: number) {
+    steps.push({
+      type: 'highlightRange',
+      payload: {l, r},
+      pc: [3],
+      explain: `구간 [${l}, ${r}] 파티션`,
+    })
+    let i = l
+    for (let j = l; j < r; j++) {
+      steps.push({
+        type: 'compare',
+        payload: {i: j, j: p},
+        pc: [5],
+        explain: `인덱스 ${j}와 피벗 ${p} 비교`,
+      })
+      if (arr[j] < arr[p]) {
+        swap(i, j)
+        i++
+      }
     }
-    swap(i,p); return i;
+    swap(i, p)
+    return i
   }
-  function qs(l:number,r:number){ if(l>=r) return; const p=r; const m=part(l,r,p); qs(l,m-1); qs(m+1,r); }
-  qs(0,arr.length-1);
-  // 선택: 최종 정렬 상태 마킹
-  arr.forEach((_,i)=>steps.push({type:'markSorted',payload:{i},pc:[1],explain:`정렬 완료 위치 ${i}`}));
-  return steps;
+
+  function qs(l: number, r: number) {
+    if (l >= r) return
+    const p = r
+    const m = partition(l, r, p)
+    qs(l, m - 1)
+    qs(m + 1, r)
+  }
+
+  qs(0, arr.length - 1)
+
+  for (let i = 0; i < arr.length; i++) {
+    steps.push({
+      type: 'markSorted',
+      payload: {i},
+      pc: [1],
+      explain: `정렬 완료 위치 ${i}`,
+    })
+  }
+
+  return steps
 }
 
 export const descriptor: AlgoDescriptor<{ array: number[] }> = {
@@ -41,24 +78,20 @@ export const descriptor: AlgoDescriptor<{ array: number[] }> = {
     'procedure quickSort(A, l, r)',
     '  if l ≥ r: return',
     '  p ← r; i ← l',
-    '  for j ← l to r-1:',
-    '    if A[j] < A[p]: ',
-    '      swap A[i], A[j]; ',
+    '  for j ← l to r-1',
+    '    if A[j] < A[p]',
+    '      swap A[i], A[j]',
     '      i ← i+1',
-    '  swap A[i], A[p]; ',
-    '  quickSort(A, l, i-1); ',
-    '  quickSort(A, i+1, r)'
+    '  swap A[i], A[p]',
+    '  quickSort(A, l, i-1)',
+    '  quickSort(A, i+1, r)',
   ],
-  complexity: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n^2)', space: 'O(log n)' },
-  defaultInput: { array: [10,3,7,2,5,8] },
+  complexity: {best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n^2)', space: 'O(log n)'},
+  defaultInput: {array: [10, 3, 7, 2, 5, 8]},
   normalizeInput: (raw: any) => {
     const arr = Array.isArray(raw?.array)
-      ? raw.array.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x))
-      : [];
-    return { array: arr.slice(0, 5000) };
-  }
-};
-
-export function stepsOf(input: { array: number[] }): Step[] {
-  return quickSortSteps(input.array);
+        ? raw.array.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x))
+        : []
+    return {array: arr.slice(0, 5000)}
+  },
 }

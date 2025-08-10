@@ -1,5 +1,6 @@
 import type { Step, AlgoDescriptor } from '@/types/step';
 import type { AdjList } from '@/lib/graph-utils';
+import { normalizeGraphInput } from './utils';
 
 /**
  * @complexity 시간: O((V+E) log V), 공간: O(V)
@@ -62,12 +63,7 @@ export const descriptor: AlgoDescriptor<{ n: number; adj: AdjList; start: number
   ],
   complexity: { best: 'O((V+E) log V)', average: 'O((V+E) log V)', worst: 'O((V+E) log V)', space: 'O(V)' },
   defaultInput: { n: 5, adj: { 0: [{ v: 1, w: 2 }, { v: 2, w: 5 }], 1: [{ v: 3, w: 1 }], 2: [{ v: 4, w: 2 }] }, start: 0 },
-  normalizeInput: (raw: any) => {
-    const n = Number(raw?.n ?? 0);
-    const adj = (raw?.adj ?? {}) as AdjList;
-    const start = Number(raw?.start ?? 0);
-    return { n: Math.max(0, Math.min(1000, n)), adj, start: Number.isFinite(start) ? start : 0 };
-  },
+  normalizeInput: normalizeGraphInput,
 };
 
 export const snapshotStrategy = 'diff' as const;

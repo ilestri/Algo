@@ -1,4 +1,4 @@
-export const clone = <T>(a: T): T => JSON.parse(JSON.stringify(a));
+export { cloneDeep } from './cloneDeep';
 export const range = (n: number) => Array.from({ length: n }, (_, i) => i);
 export const seededRandom = (seed: number) => {
   let s = seed >>> 0;

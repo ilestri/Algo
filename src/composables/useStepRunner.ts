@@ -1,58 +1,9 @@
 import { ref, computed } from 'vue';
 import type { Step, SnapshotStrategy, RunMetrics } from '@/types/step';
 import type { StepInterpreter } from '@/lib/step-interpreter';
+import { cloneDeep } from '@/lib/cloneDeep';
 
 type RunnerEvent = 'beforeStep' | 'afterStep' | 'done';
-
-const deepClone = <T>(v: T): T => {
-  // 브라우저가 지원하면 기본 structuredClone을 우선 사용
-  try {
-    const sc = (globalThis as any).structuredClone;
-    if (typeof sc === 'function') return sc(v);
-  } catch { /* no-op */ }
-
-  // 폴백: Set/Map/Date/Array/Object를 보존하는 수제 깊은 복제
-  const seen = new WeakMap<object, any>();
-  const cloneAny = (val: any): any => {
-    if (val === null || typeof val !== 'object') return val;
-
-    if (seen.has(val)) return seen.get(val);
-
-    if (val instanceof Date) return new Date(val.getTime());
-
-    if (val instanceof Set) {
-      const out = new Set<any>();
-      seen.set(val, out);
-      val.forEach((item) => out.add(cloneAny(item)));
-      return out;
-    }
-
-    if (val instanceof Map) {
-      const out = new Map<any, any>();
-      seen.set(val, out);
-      val.forEach((v2, k2) => out.set(cloneAny(k2), cloneAny(v2)));
-      return out;
-    }
-
-    if (Array.isArray(val)) {
-      const out: any[] = [];
-      seen.set(val, out);
-      for (let i = 0; i < val.length; i++) {
-        out[i] = cloneAny(val[i]);
-      }
-      return out;
-    }
-
-    const out: Record<string, any> = {};
-    seen.set(val, out);
-    for (const key of Object.keys(val)) {
-      out[key] = cloneAny(val[key]);
-    }
-    return out;
-  };
-
-  return cloneAny(v);
-};
 
 export function useStepRunner<TState>(opts: {
   initialState: TState;
@@ -75,7 +26,7 @@ export function useStepRunner<TState>(opts: {
 
   // 스냅샷(전략별)
   const snapshots: TState[] = [];
-  if (strategy === 'full') snapshots[0] = deepClone(opts.initialState);
+  if (strategy === 'full') snapshots[0] = cloneDeep(opts.initialState);
 
   // 이벤트 리스너
   const listeners: Record<RunnerEvent, Set<(payload?: any) => void>> = {
@@ -113,7 +64,7 @@ export function useStepRunner<TState>(opts: {
     metrics.value = { steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
     if (strategy === 'full') {
       snapshots.length = 0;
-      snapshots[0] = deepClone(opts.initialState);
+      snapshots[0] = cloneDeep(opts.initialState);
     }
   }
 
@@ -158,7 +109,7 @@ export function useStepRunner<TState>(opts: {
 
       // 스냅샷(풀)
       if (strategy === 'full') {
-        snapshots[curIdx + 1] = deepClone(opts.initialState);
+        snapshots[curIdx + 1] = cloneDeep(opts.initialState);
       }
 
       index.value = curIdx + 1;
@@ -186,7 +137,7 @@ export function useStepRunner<TState>(opts: {
         // 스냅샷 복원
         const snap = snapshots[prevIdx];
         if (snap != null) {
-          const restored = deepClone(snap);
+          const restored = cloneDeep(snap);
           // Object.assign으로 대상 객체 재할당
           Object.keys(opts.initialState as any).forEach(k => delete (opts.initialState as any)[k]);
           Object.assign(opts.initialState as any, restored as any);
@@ -213,7 +164,7 @@ export function useStepRunner<TState>(opts: {
     if (clamped === index.value) return;
 
     if (strategy === 'full' && snapshots[clamped]) {
-      const snap = deepClone(snapshots[clamped]);
+      const snap = cloneDeep(snapshots[clamped]);
       Object.keys(opts.initialState as any).forEach(k => delete (opts.initialState as any)[k]);
       Object.assign(opts.initialState as any, snap as any);
       index.value = clamped;

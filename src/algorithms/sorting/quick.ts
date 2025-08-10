@@ -1,4 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
+import {createStep, markSorted} from '@/lib/steps'
 
 /**
  * @complexity 시간: 최선/평균 O(n log n), 최악 O(n^2), 공간: O(log n)
@@ -16,29 +17,18 @@ export function stepsOf(input: { array: number[] }): Step[] {
 
   function swap(i: number, j: number) {
     ;[arr[i], arr[j]] = [arr[j], arr[i]]
-    steps.push({
-      type: 'swap',
-      payload: {i, j},
-      pc: [6],
-      explain: `인덱스 ${i}와 ${j} 교환`,
-    })
+    steps.push(createStep('swap', {i, j}, [6], `인덱스 ${i}와 ${j} 교환`))
   }
 
   function partition(l: number, r: number, p: number) {
-    steps.push({
-      type: 'highlightRange',
-      payload: {l, r},
-      pc: [3],
-      explain: `구간 [${l}, ${r}] 파티션`,
-    })
+    steps.push(
+        createStep('highlightRange', {l, r}, [3], `구간 [${l}, ${r}] 파티션`),
+    )
     let i = l
     for (let j = l; j < r; j++) {
-      steps.push({
-        type: 'compare',
-        payload: {i: j, j: p},
-        pc: [5],
-        explain: `인덱스 ${j}와 피벗 ${p} 비교`,
-      })
+      steps.push(
+          createStep('compare', {i: j, j: p}, [5], `인덱스 ${j}와 피벗 ${p} 비교`),
+      )
       if (arr[j] < arr[p]) {
         swap(i, j)
         i++
@@ -58,14 +48,7 @@ export function stepsOf(input: { array: number[] }): Step[] {
 
   qs(0, arr.length - 1)
 
-  for (let i = 0; i < arr.length; i++) {
-    steps.push({
-      type: 'markSorted',
-      payload: {i},
-      pc: [1],
-      explain: `정렬 완료 위치 ${i}`,
-    })
-  }
+  markSorted(steps, arr.length, [1])
 
   return steps
 }

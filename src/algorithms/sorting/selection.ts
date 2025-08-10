@@ -1,4 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
+import {createStep, markSorted} from '@/lib/steps'
 
 /**
  * @complexity 시간: O(n^2), 공간: O(1)
@@ -16,34 +17,32 @@ export function stepsOf(input: { array: number[] }): Step[] {
 
   for (let i = 0; i < n - 1; i++) {
     let min = i
-    steps.push({
-      type: 'pointer',
-      payload: {name: 'i', index: i},
-      pc: [1],
-      explain: `i=${i} 고정`,
-    })
-    steps.push({
-      type: 'pointer',
-      payload: {name: 'min', index: min},
-      pc: [2],
-      explain: `최솟값 위치 초기화 min=${min}`,
-    })
+    steps.push(
+        createStep('pointer', {name: 'i', index: i}, [1], `i=${i} 고정`),
+    )
+    steps.push(
+        createStep(
+            'pointer',
+            {name: 'min', index: min},
+            [2],
+            `최솟값 위치 초기화 min=${min}`,
+        ),
+    )
 
     for (let j = i + 1; j < n; j++) {
-      steps.push({
-        type: 'compare',
-        payload: {i: j, j: min},
-        pc: [3, 4],
-        explain: `A[${j}]와 A[${min}] 비교`,
-      })
+      steps.push(
+          createStep(
+              'compare',
+              {i: j, j: min},
+              [3, 4],
+              `A[${j}]와 A[${min}] 비교`,
+          ),
+      )
       if (arr[j] < arr[min]) {
         min = j
-        steps.push({
-          type: 'pointer',
-          payload: {name: 'min', index: min},
-          pc: [4],
-          explain: `새 최솟값 min=${min}`,
-        })
+        steps.push(
+            createStep('pointer', {name: 'min', index: min}, [4], `새 최솟값 min=${min}`),
+        )
       }
     }
 
@@ -51,23 +50,13 @@ export function stepsOf(input: { array: number[] }): Step[] {
       const t = arr[i]
       arr[i] = arr[min]
       arr[min] = t
-      steps.push({
-        type: 'swap',
-        payload: {i, j: min},
-        pc: [5],
-        explain: `A[${i}]와 A[${min}] 교환`,
-      })
+      steps.push(
+          createStep('swap', {i, j: min}, [5], `A[${i}]와 A[${min}] 교환`),
+      )
     }
   }
 
-  for (let k = 0; k < n; k++) {
-    steps.push({
-      type: 'markSorted',
-      payload: {i: k},
-      pc: [5],
-      explain: `정렬 완료 위치 ${k}`,
-    })
-  }
+  markSorted(steps, n, [5])
 
   return steps
 }

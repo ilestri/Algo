@@ -1,4 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
+import {createStep, markSorted} from '@/lib/steps'
 
 /**
  * @complexity 시간: O(n^2), 공간: O(1)
@@ -20,19 +21,13 @@ export function stepsOf(input: { array: number[] }): Step[] {
   for (let i = 0; i < n - 1; i++) {
     let swapped = false
     for (let j = 0; j < n - i - 1; j++) {
-      steps.push({
-        type: 'compare',
-        payload: {i: j, j: j + 1},
-        pc: [4],
-        explain: `인덱스 ${j}와 ${j + 1} 비교`,
-      })
+      steps.push(
+          createStep('compare', {i: j, j: j + 1}, [4], `인덱스 ${j}와 ${j + 1} 비교`),
+      )
       if (arr[j] > arr[j + 1]) {
-        steps.push({
-          type: 'swap',
-          payload: {i: j, j: j + 1},
-          pc: [5],
-          explain: '두 원소 교환',
-        })
+        steps.push(
+            createStep('swap', {i: j, j: j + 1}, [5], '두 원소 교환'),
+        )
         const t = arr[j]
         arr[j] = arr[j + 1]
         arr[j + 1] = t
@@ -42,14 +37,7 @@ export function stepsOf(input: { array: number[] }): Step[] {
     if (!swapped) break
   }
 
-  for (let k = 0; k < n; k++) {
-    steps.push({
-      type: 'markSorted',
-      payload: {i: k},
-      pc: [1],
-      explain: `정렬 완료 위치 ${k}`,
-    })
-  }
+  markSorted(steps, n, [1])
 
   return steps
 }

@@ -1,4 +1,5 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
+import {createStep, markSorted} from '@/lib/steps'
 
 /**
  * @complexity 시간: O(n^2), 공간: O(1)
@@ -16,53 +17,46 @@ export function stepsOf(input: { array: number[] }): Step[] {
 
   for (let i = 1; i < n; i++) {
     const key = arr[i]
-    steps.push({
-      type: 'highlight',
-      payload: {i},
-      pc: [1],
-      explain: `i=${i} 위치의 값을 삽입 정렬`,
-    })
-    steps.push({
-      type: 'pointer',
-      payload: {name: 'key', index: i},
-      pc: [2],
-      explain: `key=A[${i}]=${key}`,
-    })
+    steps.push(
+        createStep('highlight', {i}, [1], `i=${i} 위치의 값을 삽입 정렬`),
+    )
+    steps.push(
+        createStep('pointer', {name: 'key', index: i}, [2], `key=A[${i}]=${key}`),
+    )
 
     let j = i - 1
     while (j >= 0 && arr[j] > key) {
-      steps.push({
-        type: 'compare',
-        payload: {i: j, key},
-        pc: [3],
-        explain: `A[${j}](${arr[j]}) > key(${key}) 비교`,
-      })
+      steps.push(
+          createStep(
+              'compare',
+              {i: j, key},
+              [3],
+              `A[${j}](${arr[j]}) > key(${key}) 비교`,
+          ),
+      )
       arr[j + 1] = arr[j]
-      steps.push({
-        type: 'setValue',
-        payload: {index: j + 1, value: arr[j]},
-        pc: [4],
-        explain: `A[${j + 1}] ← A[${j}] (${arr[j]})`,
-      })
+      steps.push(
+          createStep(
+              'setValue',
+              {index: j + 1, value: arr[j]},
+              [4],
+              `A[${j + 1}] ← A[${j}] (${arr[j]})`,
+          ),
+      )
       j--
     }
     arr[j + 1] = key
-    steps.push({
-      type: 'setValue',
-      payload: {index: j + 1, value: key},
-      pc: [5],
-      explain: `A[${j + 1}] ← key (${key})`,
-    })
+    steps.push(
+        createStep(
+            'setValue',
+            {index: j + 1, value: key},
+            [5],
+            `A[${j + 1}] ← key (${key})`,
+        ),
+    )
   }
 
-  for (let k = 0; k < n; k++) {
-    steps.push({
-      type: 'markSorted',
-      payload: {i: k},
-      pc: [5],
-      explain: `정렬 완료 위치 ${k}`,
-    })
-  }
+  markSorted(steps, n, [5])
 
   return steps
 }

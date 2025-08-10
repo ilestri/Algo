@@ -19,3 +19,8 @@
 - `npm install`
 - `npm run dev`
 - `npm run build`
+
+## 3) 테스트
+
+- `npm run lint`
+- `npm run test`

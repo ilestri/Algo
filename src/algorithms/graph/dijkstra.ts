@@ -2,6 +2,7 @@ import type {Step, AlgoDescriptor} from '@/types/step';
 import type {AdjList} from '@/lib/graph-utils';
 import {normalizeGraphInput} from './utils';
 import {createStep} from '@/lib/steps';
+import {PriorityQueue} from '@/lib/priority-queue';
 
 /**
  * @complexity 시간: O((V+E) log V), 공간: O(V)
@@ -19,23 +20,14 @@ export function stepsOf(input: { n: number; adj: AdjList; start: number }): Step
   const used = Array(n).fill(false);
   const steps: Step[] = [];
   type QNode = { d: number; u: number };
-  const pq: QNode[] = [];
-
-  function push(node: QNode) {
-    pq.push(node);
-    pq.sort((a, b) => a.d - b.d);
-  }
-
-  function pop(): QNode | undefined {
-    return pq.shift();
-  }
+  const pq = new PriorityQueue<QNode>((a, b) => a.d - b.d);
 
   dist[start] = 0;
-  push({d: 0, u: start});
+  pq.push({d: 0, u: start});
   steps.push(createStep('enqueue', {v: start}, [1], `시작 정점 ${start} 거리 0, PQ 삽입`));
 
   while (pq.length) {
-    const cur = pop()!;
+    const cur = pq.pop()!;
     steps.push(createStep('dequeue', {v: cur.u}, [3], `정점 ${cur.u} 추출`));
     if (used[cur.u]) continue;
     used[cur.u] = true;
@@ -45,7 +37,7 @@ export function stepsOf(input: { n: number; adj: AdjList; start: number }): Step
       if (dist[v] > nd) {
         dist[v] = nd;
         steps.push(createStep('relax', {v, dist: nd}, [5], `정점 ${v} 거리 갱신: ${nd}`));
-        push({d: nd, u: v});
+        pq.push({d: nd, u: v});
         steps.push(createStep('enqueue', {v}, [5], `정점 ${v} PQ 삽입`));
       }
     }

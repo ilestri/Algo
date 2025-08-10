@@ -1,5 +1,6 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
 import {createStep, markSorted} from '@/lib/steps'
+import { normalizeArrayInput } from '@/lib/normalize-array-input'
 import {swap} from '@/lib/array-utils'
 
 /**
@@ -73,10 +74,5 @@ export const descriptor: AlgoDescriptor<{ array: number[] }> = {
   ],
   complexity: {best: 'O(n^2)', average: 'O(n^2)', worst: 'O(n^2)', space: 'O(1)'},
   defaultInput: {array: [5, 3, 8, 1, 4]},
-  normalizeInput: (raw: any) => {
-    const arr = Array.isArray(raw?.array)
-        ? raw.array.map((x: any) => Number(x)).filter((x: any) => Number.isFinite(x))
-        : []
-    return {array: arr.slice(0, 5000)}
-  },
+  normalizeInput: normalizeArrayInput,
 }

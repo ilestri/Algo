@@ -127,10 +127,14 @@ watch(text, (t) => {
 function randomize() {
   const n = 20;
   const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100) + 1);
-  text.value = arr.join(',');
+  const finalArr = requireKey.value ? arr.slice().sort((a, b) => a - b) : arr;
+  text.value = finalArr.join(',');
+  // 랜덤 생성 시 경고/안내 상태 초기화
+  unsortedPrompt.value = false;
+  error.value = null;
   // 이진탐색 모드일 때 타깃 값을 자동으로 하나 선택
-  if (requireKey.value && arr.length > 0) {
-    const pick = arr[Math.floor(Math.random() * arr.length)];
+  if (requireKey.value && finalArr.length > 0) {
+    const pick = finalArr[Math.floor(Math.random() * finalArr.length)];
     keyText.value = String(pick);
     keyError.value = null;
   }

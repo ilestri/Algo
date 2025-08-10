@@ -119,16 +119,27 @@ export function useStepRunner<TState>(opts: {
 
   function setSpeed(v: number) { speed.value = Math.min(4, Math.max(0.25, v)); }
 
-  function applyMetrics(step: Step) {
-    metrics.value.steps += 1;
+  function applyMetrics(step: Step): RunMetrics {
+    const delta: RunMetrics = { steps: 1, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
     switch (step.type) {
-      case 'compare': metrics.value.compares = (metrics.value.compares || 0) + 1; break;
-      case 'swap': metrics.value.swaps = (metrics.value.swaps || 0) + 1; break;
-      case 'visit': metrics.value.visits = (metrics.value.visits || 0) + 1; break;
-      case 'relax': metrics.value.relaxes = (metrics.value.relaxes || 0) + 1; break;
-      case 'enqueue': metrics.value.enqueues = (metrics.value.enqueues || 0) + 1; break;
-      case 'dequeue': metrics.value.dequeues = (metrics.value.dequeues || 0) + 1; break;
+      case 'compare': delta.compares = 1; break;
+      case 'swap': delta.swaps = 1; break;
+      case 'visit': delta.visits = 1; break;
+      case 'relax': delta.relaxes = 1; break;
+      case 'enqueue': delta.enqueues = 1; break;
+      case 'dequeue': delta.dequeues = 1; break;
     }
+    return delta;
+  }
+
+  function accumulateMetrics(delta: RunMetrics, sign = 1) {
+    metrics.value.steps += sign * delta.steps;
+    if (delta.compares) metrics.value.compares = (metrics.value.compares || 0) + sign * (delta.compares || 0);
+    if (delta.swaps) metrics.value.swaps = (metrics.value.swaps || 0) + sign * (delta.swaps || 0);
+    if (delta.visits) metrics.value.visits = (metrics.value.visits || 0) + sign * (delta.visits || 0);
+    if (delta.relaxes) metrics.value.relaxes = (metrics.value.relaxes || 0) + sign * (delta.relaxes || 0);
+    if (delta.enqueues) metrics.value.enqueues = (metrics.value.enqueues || 0) + sign * (delta.enqueues || 0);
+    if (delta.dequeues) metrics.value.dequeues = (metrics.value.dequeues || 0) + sign * (delta.dequeues || 0);
   }
 
   function stepForward(n = 1) {
@@ -142,7 +153,8 @@ export function useStepRunner<TState>(opts: {
       opts.interpreter?.apply?.(opts.initialState, step);
 
       // 메트릭
-      applyMetrics(step);
+      const delta = applyMetrics(step);
+      accumulateMetrics(delta);
 
       // 스냅샷(풀)
       if (strategy === 'full') {
@@ -181,14 +193,19 @@ export function useStepRunner<TState>(opts: {
         }
       }
       index.value = prevIdx;
+
+      // 메트릭 역적용
+      const delta = applyMetrics(step);
+      accumulateMetrics(delta, -1);
     }
-    // 메트릭은 간단히 재계산(정확성 우선)
-    recomputeMetrics(index.value);
   }
 
   function recomputeMetrics(toIdx: number) {
     metrics.value = { steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
-    for (let i = 0; i < toIdx; i++) applyMetrics(steps[i]);
+    for (let i = 0; i < toIdx; i++) {
+      const delta = applyMetrics(steps[i]);
+      accumulateMetrics(delta);
+    }
   }
 
   function jumpTo(pos: number) {

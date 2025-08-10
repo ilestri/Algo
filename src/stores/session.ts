@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia';
 import type { Step, RunMetrics } from '@/types/step';
+import { initialMetrics } from '@/lib/metrics';
 
 export const useSessionStore = defineStore('session', {
   state: () => ({
     input: {} as any,
     steps: [] as Step[],
     snapshots: [] as any[], // 스냅샷(전략에 따라)
-    metrics: { steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 } as RunMetrics,
+    metrics: { ...initialMetrics } as RunMetrics,
     pc: [] as number[],
     explain: '' as string,
   }),
@@ -15,7 +16,7 @@ export const useSessionStore = defineStore('session', {
       this.input = {} as any;
       this.steps = [];
       this.snapshots = [];
-      this.metrics = { steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
+      this.metrics = { ...initialMetrics };
       this.pc = [];
       this.explain = '';
     },

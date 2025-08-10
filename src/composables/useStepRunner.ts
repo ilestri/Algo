@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import type { Step, SnapshotStrategy, RunMetrics } from '@/types/step';
+import { initialMetrics } from '@/lib/metrics';
 import type { StepInterpreter } from '@/lib/step-interpreter';
 import { cloneDeep } from '@/lib/cloneDeep';
 
@@ -22,7 +23,7 @@ export function useStepRunner<TState>(opts: {
   const done = computed(() => index.value >= steps.length);
 
   // 메트릭 집계
-  const metrics = ref<RunMetrics>({ steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 });
+  const metrics = ref<RunMetrics>({ ...initialMetrics });
 
   // 스냅샷(전략별)
   const snapshots: TState[] = [];
@@ -61,7 +62,7 @@ export function useStepRunner<TState>(opts: {
   function reset() {
     pause();
     index.value = 0;
-    metrics.value = { steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
+    metrics.value = { ...initialMetrics };
     if (strategy === 'full') {
       snapshots.length = 0;
       snapshots[0] = cloneDeep(opts.initialState);
@@ -71,7 +72,7 @@ export function useStepRunner<TState>(opts: {
   function setSpeed(v: number) { speed.value = Math.min(4, Math.max(0.25, v)); }
 
   function applyMetrics(step: Step): RunMetrics {
-    const delta: RunMetrics = { steps: 1, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
+    const delta: RunMetrics = { ...initialMetrics, steps: 1 };
     switch (step.type) {
       case 'compare': delta.compares = 1; break;
       case 'swap': delta.swaps = 1; break;
@@ -152,7 +153,7 @@ export function useStepRunner<TState>(opts: {
   }
 
   function recomputeMetrics(toIdx: number) {
-    metrics.value = { steps: 0, compares: 0, swaps: 0, visits: 0, relaxes: 0, enqueues: 0, dequeues: 0 };
+    metrics.value = { ...initialMetrics };
     for (let i = 0; i < toIdx; i++) {
       const delta = applyMetrics(steps[i]);
       accumulateMetrics(delta);

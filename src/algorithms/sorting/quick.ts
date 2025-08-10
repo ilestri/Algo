@@ -1,5 +1,6 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
 import {createStep, markSorted} from '@/lib/steps'
+import {swap} from '@/lib/array-utils'
 
 /**
  * @complexity 시간: 최선/평균 O(n log n), 최악 O(n^2), 공간: O(log n)
@@ -15,11 +16,6 @@ export function stepsOf(input: { array: number[] }): Step[] {
   const arr = input.array.slice()
   const steps: Step[] = []
 
-  function swap(i: number, j: number) {
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
-    steps.push(createStep('swap', {i, j}, [6], `인덱스 ${i}와 ${j} 교환`))
-  }
-
   function partition(l: number, r: number, p: number) {
     steps.push(
         createStep('highlightRange', {l, r}, [3], `구간 [${l}, ${r}] 파티션`),
@@ -30,11 +26,17 @@ export function stepsOf(input: { array: number[] }): Step[] {
           createStep('compare', {i: j, j: p}, [5], `인덱스 ${j}와 피벗 ${p} 비교`),
       )
       if (arr[j] < arr[p]) {
-        swap(i, j)
+        swap(arr, i, j)
+        steps.push(
+            createStep('swap', {i, j}, [6], `인덱스 ${i}와 ${j} 교환`),
+        )
         i++
       }
     }
-    swap(i, p)
+    swap(arr, i, p)
+    steps.push(
+        createStep('swap', {i, j: p}, [6], `인덱스 ${i}와 ${p} 교환`),
+    )
     return i
   }
 

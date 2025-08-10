@@ -1,5 +1,6 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
 import {createStep, markSorted} from '@/lib/steps'
+import {swap} from '@/lib/array-utils'
 
 /**
  * @complexity 시간: O(n^2), 공간: O(1)
@@ -47,9 +48,7 @@ export function stepsOf(input: { array: number[] }): Step[] {
     }
 
     if (min !== i) {
-      const t = arr[i]
-      arr[i] = arr[min]
-      arr[min] = t
+      swap(arr, i, min)
       steps.push(
           createStep('swap', {i, j: min}, [5], `A[${i}]와 A[${min}] 교환`),
       )

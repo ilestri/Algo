@@ -1,5 +1,6 @@
 import type {Step, AlgoDescriptor} from '@/types/step'
 import {createStep, markSorted} from '@/lib/steps'
+import {swap} from '@/lib/array-utils'
 
 /**
  * @complexity 시간: O(n^2), 공간: O(1)
@@ -28,9 +29,7 @@ export function stepsOf(input: { array: number[] }): Step[] {
         steps.push(
             createStep('swap', {i: j, j: j + 1}, [5], '두 원소 교환'),
         )
-        const t = arr[j]
-        arr[j] = arr[j + 1]
-        arr[j + 1] = t
+        swap(arr, j, j + 1)
         swapped = true
       }
     }

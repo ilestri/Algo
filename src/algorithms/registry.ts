@@ -13,6 +13,7 @@ const defaultModuleLoaders = import.meta.glob<false, string, {
   [
     './**/*.ts',
     '!./**/registry.ts',
+    '!./**/utils.ts',
   ],
   { eager: false },
 );

@@ -1,25 +1,32 @@
 import { defineStore } from 'pinia';
+import type { PersistedStateOptions } from 'pinia-plugin-persistedstate';
 import type { Step, RunMetrics } from '@/types/step';
 import { initialMetrics } from '@/lib/metrics';
 
+interface SessionState<I = Record<string, unknown>, S = unknown> {
+  input: I;
+  steps: Step[];
+  snapshots: S[];
+  metrics: RunMetrics;
+  pc: number[];
+  explain: string;
+}
+
+const createState = <I = Record<string, unknown>, S = unknown>(): SessionState<I, S> => ({
+  input: {} as I,
+  steps: [],
+  snapshots: [] as S[],
+  metrics: { ...initialMetrics },
+  pc: [],
+  explain: '',
+});
+
 export const useSessionStore = defineStore('session', {
-  state: () => ({
-    input: {} as any,
-    steps: [] as Step[],
-    snapshots: [] as any[], // 스냅샷(전략에 따라)
-    metrics: { ...initialMetrics } as RunMetrics,
-    pc: [] as number[],
-    explain: '' as string,
-  }),
+  state: () => createState(),
   actions: {
     reset() {
-      this.input = {} as any;
-      this.steps = [];
-      this.snapshots = [];
-      this.metrics = { ...initialMetrics };
-      this.pc = [];
-      this.explain = '';
+      Object.assign(this, createState());
     },
   },
-  persist: { key: 'av-session' } as any,
+  persist: { key: 'av-session' } satisfies PersistedStateOptions,
 });

@@ -1,0 +1,1 @@
+function o(e,r,n,t){return{type:e,payload:r,pc:n,explain:t}}function u(e,r,n,t,p){e.push(o(r,n,t,p))}function a(e,r,n){for(let t=0;t<r;t++)e.push(o("markSorted",{i:t},n,`정렬 완료 위치 ${t}`))}export{a as m,u as p};

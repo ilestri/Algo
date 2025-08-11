@@ -1,0 +1,1 @@
+function s(n){const o=Number(n?.n??0),r=Number.isFinite(o)?Math.floor(o):0,a=Math.max(0,Math.min(1e3,r)),i=n?.adj??{},e=Number(n?.start??0);let t=Number.isFinite(e)?Math.floor(e):0;return(t<0||t>=a)&&(t=0),{n:a,adj:i,start:t}}export{s as normalizeGraphInput};

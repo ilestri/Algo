@@ -1,0 +1,1 @@
+function i(n){const a=Number(n?.n??0),r=Number.isFinite(a)?Math.floor(a):0,o=Math.max(0,Math.min(1e3,r)),s=n?.adj??{},e=Number(n?.start??0);let t=Number.isFinite(e)?Math.floor(e):0;return(t<0||t>=o)&&(t=0),{n:o,adj:s,start:t}}export{i as n};

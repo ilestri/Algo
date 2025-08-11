@@ -1,27 +1,23 @@
-import type { AlgoModule, AlgoDescriptor } from '@/types/step';
-import { useRegistryStore } from '@/stores/registry';
+import type {AlgoModule, AlgoDescriptor} from '@/types/step';
+import {useRegistryStore} from '@/stores/registry';
 
 /**
  * src/algorithms//registry.ts 를 제외한 모든 알고리즘 모듈을 지연 로딩한다.
  * 각 모듈은 { descriptor, stepsOf, snapshotStrategy? }를 export 해야 한다.
  */
-const defaultModuleLoaders = import.meta.glob<false, string, {
-  descriptor: AlgoDescriptor,
-  stepsOf: (...args: any[]) => unknown,
-  snapshotStrategy?: any
-}>(
-  [
-    './**/*.ts',
-    '!./**/registry.ts',
-    '!./**/utils.ts',
-  ],
-  { eager: false },
+const defaultModuleLoaders = import.meta.glob<false, string, AlgoModule<any>>(
+    [
+      './**/*.ts',
+      '!./**/registry.ts',
+      '!./**/utils.ts',
+    ],
+    {eager: false},
 );
 
-let moduleLoaders = defaultModuleLoaders;
+let moduleLoaders: Record<string, () => Promise<AlgoModule<any>>> = defaultModuleLoaders;
 let initialized = false;
 
-export function __setModuleLoaders(loaders: Record<string, () => Promise<any>>) {
+export function __setModuleLoaders(loaders: Record<string, () => Promise<AlgoModule<any>>>) {
   moduleLoaders = loaders;
   initialized = false;
 }
@@ -38,7 +34,7 @@ export async function initAlgorithms() {
   const entries = Object.entries(moduleLoaders);
   for (const [path, loader] of entries) {
     try {
-      const mod: any = await loader();
+      const mod = await loader();
       if (mod && mod.descriptor && typeof mod.stepsOf === 'function') {
         const algo: AlgoModule = {
           descriptor: mod.descriptor,

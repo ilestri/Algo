@@ -6,7 +6,7 @@ interface UrlSyncOptions {
   input: any;
   speed: Ref<number>;
   currentMeta: ComputedRef<AlgoDescriptor | null>;
-  buildAndLoadSteps: (shouldPatch?: boolean) => void;
+  buildAndLoadSteps: () => void;
   urlState: Ref<any>;
   patch: (payload: any) => void;
   patchSelected: (id: string) => void;
@@ -47,7 +47,7 @@ export function useUrlSync({
       const normalized = normalize(nv);
       Object.keys(input).forEach((k) => delete (input as any)[k]);
       Object.assign(input, JSON.parse(JSON.stringify(normalized)));
-      buildAndLoadSteps(false);
+      buildAndLoadSteps();
     },
     {deep: true},
   );
@@ -59,7 +59,7 @@ export function useUrlSync({
     const normalized = normalize(nv);
     Object.keys(input).forEach((k) => delete (input as any)[k]);
     Object.assign(input, JSON.parse(JSON.stringify(normalized)));
-    buildAndLoadSteps(false);
+    buildAndLoadSteps();
   });
 
   watch(() => currentMeta.value, (meta) => {
@@ -68,7 +68,7 @@ export function useUrlSync({
     Object.keys(input).forEach((k) => delete (input as any)[k]);
     Object.assign(input, JSON.parse(JSON.stringify(def)));
     patch({algo: selectedId.value, input: JSON.parse(JSON.stringify(input))});
-    buildAndLoadSteps(false);
+    buildAndLoadSteps();
   });
 }
 

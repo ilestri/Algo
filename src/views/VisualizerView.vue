@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, reactive, onMounted, onBeforeUnmount, watch} from 'vue';
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
 import VisualizerCanvas from '@/components/visualizer/VisualizerCanvas.vue';
 import PlayerControls from '@/components/controls/PlayerControls.vue';
 import ShareLinkButton from '@/components/controls/ShareLinkButton.vue';
@@ -88,12 +88,11 @@ import TreeInputForm from '@/components/forms/TreeInputForm.vue';
 
 import {useStepRunner} from '@/composables/useStepRunner';
 import {useA11yAnnouncements} from '@/composables/useA11yAnnouncements';
-import {useUrlState} from '@/composables/useUrlState';
-import {useUrlSync} from '@/composables/visualizer/useUrlSync';
 import {useVisualizerWorker} from '@/composables/visualizer/useWorker';
 import {useKeyboard} from '@/composables/visualizer/useKeyboard';
-import type {Step, AlgoModule, AlgoDescriptor, SnapshotStrategy} from '@/types/step';
-import {initAlgorithms, listDescriptors, getAlgorithm} from '@/algorithms/registry';
+import {useUrlManager} from '@/composables/visualizer/useUrlManager';
+import type {AlgoDescriptor, AlgoModule, SnapshotStrategy, Step} from '@/types/step';
+import {getAlgorithm, initAlgorithms, listDescriptors} from '@/algorithms/registry';
 import {useSessionStore} from '@/stores/session';
 import {useGlobalStore} from '@/stores/global';
 
@@ -117,9 +116,6 @@ onMounted(async () => {
     selectedId.value = descriptors.value[0]?.id || 'sorting/quick';
   }
 });
-
-// URL 상태
-const {state: urlState, patch} = useUrlState();
 
 // 현재 선택된 알고리즘 모듈
 const currentModule = computed<AlgoModule | undefined>(() => getAlgorithm(selectedId.value));
@@ -343,10 +339,8 @@ on('done', () => {
   // 완료
 });
 
-let buildAndLoadSteps: (shouldPatch?: boolean) => Promise<void>;
-
-// 워커 연동
-buildAndLoadSteps = useVisualizerWorker({
+// 워커 연동 및 URL 상태 관리
+const {buildAndLoadSteps} = useVisualizerWorker({
   currentModule,
   currentMeta,
   input,
@@ -359,19 +353,17 @@ buildAndLoadSteps = useVisualizerWorker({
   session,
   reset,
   jumpTo,
-  patch,
   selectedId,
   speed,
-}).buildAndLoadSteps;
+});
 
-useUrlSync({
+const {onSpeedChange} = useUrlManager({
   selectedId,
   input,
   speed,
   currentMeta,
   buildAndLoadSteps,
-  urlState,
-  patch,
+  setSpeed,
   patchSelected: (id: string) => {
     global.algoId = id;
   },
@@ -389,7 +381,7 @@ function onSubmitInput(payload: any) {
   // 배열만 전달되는 케이스(정렬 등)
   if (Array.isArray(payload)) {
     (input as any).array = payload.slice();
-    buildAndLoadSteps(true);
+    buildAndLoadSteps();
     return;
   }
 
@@ -398,15 +390,12 @@ function onSubmitInput(payload: any) {
   const key = Number(payload?.key);
   const action = payload?.action as ('normal' | 'autoSort' | undefined);
 
-  // 자동 정렬 선택 시 정렬 후 적용
-  const finalArray = action === 'autoSort' ? arr.slice().sort((a, b) => a - b) : arr;
-
-  // 입력 반영
-  (input as any).array = finalArray;
+  // 자동 정렬 선택 시 정렬 후 입력 반영
+  (input as any).array = action === 'autoSort' ? arr.slice().sort((a, b) => a - b) : arr;
   if (Number.isFinite(key)) (input as any).key = key;
 
   // 단계 재빌드(내부에서 URL 패치 수행)
-  buildAndLoadSteps(true);
+  buildAndLoadSteps();
 }
 
 // 제어기 래핑
@@ -420,12 +409,6 @@ watch(index, (i) => {
   pc.value = cur?.pc ?? [];
   explain.value = cur?.explain ?? '';
 });
-
-function onSpeedChange(val: number) {
-  setSpeed(val);
-  const plainInput = JSON.parse(JSON.stringify(input));
-  patch({algo: selectedId.value, input: plainInput, speed: val});
-}
 
 function onShared() {
   // 간단한 알림(필요 시 토스트로 대체 가능)

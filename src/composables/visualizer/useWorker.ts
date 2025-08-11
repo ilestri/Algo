@@ -15,7 +15,6 @@ interface WorkerArgs {
   session: any;
   reset: () => void;
   jumpTo: (i: number) => void;
-  patch: (payload: any) => void;
   selectedId: Ref<string>;
   speed: Ref<number>;
 }
@@ -23,7 +22,7 @@ interface WorkerArgs {
 export function useVisualizerWorker(args: WorkerArgs) {
   const stepsWorker = useStepsWorker({bigArray: 5000, bigNodes: 1000});
 
-  async function buildAndLoadSteps(shouldPatch: boolean = true) {
+  async function buildAndLoadSteps() {
     const mod = args.currentModule.value;
     const meta = args.currentMeta.value as any;
     if (!mod || !meta) return;
@@ -74,10 +73,7 @@ export function useVisualizerWorker(args: WorkerArgs) {
       // noop
     }
 
-    if (shouldPatch) {
-      const plainInput = JSON.parse(JSON.stringify(args.input));
-      args.patch({algo: args.selectedId.value, input: plainInput, speed: args.speed.value});
-    }
+    // URL 패치는 외부에서 처리
   }
 
   return {buildAndLoadSteps};

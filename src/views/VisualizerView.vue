@@ -73,6 +73,7 @@
 
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
+import {useRoute} from 'vue-router';
 import VisualizerCanvas from '@/components/visualizer/VisualizerCanvas.vue';
 import PlayerControls from '@/components/controls/PlayerControls.vue';
 import ShareLinkButton from '@/components/controls/ShareLinkButton.vue';
@@ -91,13 +92,14 @@ import {useA11yAnnouncements} from '@/composables/useA11yAnnouncements';
 import {useVisualizerWorker} from '@/composables/visualizer/useWorker';
 import {useKeyboard} from '@/composables/visualizer/useKeyboard';
 import {useUrlManager} from '@/composables/visualizer/useUrlManager';
-import type {AlgoDescriptor, AlgoModule, SnapshotStrategy, Step} from '@/types/step';
-import {getAlgorithm, initAlgorithms, listDescriptors} from '@/algorithms/registry';
+import type {AlgoCategory, AlgoDescriptor, AlgoModule, SnapshotStrategy, Step} from '@/types/step';
+import {getAlgorithm, initAlgorithms, listDescriptorsByCategory} from '@/algorithms/registry';
 import {useSessionStore} from '@/stores/session';
 import {useGlobalStore} from '@/stores/global';
 
 const session = useSessionStore();
 const global = useGlobalStore();
+const route = useRoute();
 
 // 레지스트리 초기화 및 목록
 const descriptors = ref<AlgoDescriptor[]>([]);
@@ -105,7 +107,8 @@ const selectedId = ref<string>(global.algoId);
 
 onMounted(async () => {
   await initAlgorithms();
-  descriptors.value = listDescriptors();
+  const category = route.params.category as AlgoCategory;
+  descriptors.value = listDescriptorsByCategory(category);
   // normalizeInput 폴리필: 없는 경우 원본 반환 함수로 채워 안전하게 처리
   descriptors.value.forEach((d: any) => {
     if (typeof (d as any).normalizeInput !== 'function') {

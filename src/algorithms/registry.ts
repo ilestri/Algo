@@ -1,4 +1,4 @@
-import type {AlgoModule, AlgoDescriptor} from '@/types/step';
+import type {AlgoModule, AlgoDescriptor, AlgoCategory} from '@/types/step';
 import {useRegistryStore} from '@/stores/registry';
 
 /**
@@ -60,6 +60,15 @@ export async function initAlgorithms() {
 export function listDescriptors(): AlgoDescriptor[] {
   const store = useRegistryStore();
   return store.list().map(m => m.descriptor);
+}
+
+/** 카테고리별 descriptor 목록 반환 */
+export function listDescriptorsByCategory(category: AlgoCategory): AlgoDescriptor[] {
+  const store = useRegistryStore();
+  return store
+    .list()
+    .filter(m => m.descriptor.category === category)
+    .map(m => m.descriptor);
 }
 
 /** id로 모듈 조회 */

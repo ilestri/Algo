@@ -1,5 +1,36 @@
-import { defineStore } from 'pinia';
-import type { AlgoModule } from '@/types/step';
+import {defineStore} from 'pinia';
+import type {AlgoModule} from '@/types/step';
+
+export const FACTORIAL_PATTERN = /(?:n!|factorial)/;
+export const EXPONENTIAL_PATTERN = /(?:\d+\^n|n\^n)/;
+export const POLYNOMIAL_PATTERN = /n\^(\d+(?:\.\d+)?)/;
+export const N_LOG_N_PATTERN = /(?:nlogn|n\*logn|nlog\(n\)|n\*log\(n\)|vlogv|elogv|e\*logv|v\*logv)/;
+export const GRAPH_LINEAR_PATTERN = /(?:v\+e)/;
+export const LOG_PATTERN = /(?:\blogn\b|log\(n\))/;
+export const LINEAR_PATTERN = /(?:\bn\b|\bv\b|\be\b)/;
+export const CONSTANT_PATTERN = /\b1\b/;
+
+interface ScoreRule {
+  pattern: RegExp;
+  score: number | ((m: RegExpMatchArray) => number);
+}
+
+export const SCORE_RULES: ScoreRule[] = [
+  {pattern: FACTORIAL_PATTERN, score: 100},
+  {pattern: EXPONENTIAL_PATTERN, score: 80},
+  {
+    pattern: POLYNOMIAL_PATTERN,
+    score: (m) => {
+      const k = parseFloat(m[1]);
+      return isFinite(k) ? 20 + k * 5 : 0;
+    },
+  },
+  {pattern: N_LOG_N_PATTERN, score: 18},
+  {pattern: GRAPH_LINEAR_PATTERN, score: 14},
+  {pattern: LOG_PATTERN, score: 10},
+  {pattern: LINEAR_PATTERN, score: 14},
+  {pattern: CONSTANT_PATTERN, score: 1},
+];
 
 /**
  * Big-O 표기 문자열을 대략적인 '나쁨 점수'로 환산한다.
@@ -14,40 +45,19 @@ import type { AlgoModule } from '@/types/step';
  * - O(V+E): 14
  * - 알 수 없는 표기: 0
  */
-function scoreComplexityStr(raw?: string): number {
+export function scoreComplexityStr(raw?: string): number {
   if (!raw || typeof raw !== 'string') return 0;
   let s = raw.toLowerCase().trim();
   s = s.replace(/\s+/g, '');
   // O(...), Θ(...), Ω(...) 제거
   s = s.replace(/^(?:o|θ|omega|\u0398|\u03a9)\(|\)$/gi, '');
 
-  // 팩토리얼
-  if (/(?:n!|factorial)/.test(s)) return 100;
-
-  // 지수(2^n, c^n, n^n)
-  if (/(?:\d+\^n|n\^n)/.test(s)) return 80;
-
-  // 다항식 n^k
-  const poly = s.match(/n\^(\d+(?:\.\d+)?)/);
-  if (poly) {
-    const k = parseFloat(poly[1]);
-    if (isFinite(k)) return 20 + k * 5;
+  for (const rule of SCORE_RULES) {
+    const match = s.match(rule.pattern);
+    if (match) {
+      return typeof rule.score === 'number' ? rule.score : rule.score(match);
+    }
   }
-
-  // n log n 계열 (그래프 표기 변형 포함)
-  if (/(?:nlogn|n\*logn|nlog\(n\)|n\*log\(n\)|vlogv|elogv|e\*logv|v\*logv)/.test(s)) return 18;
-
-  // 그래프 V+E
-  if (/(?:v\+e)/.test(s)) return 14;
-
-  // log n
-  if (/(?:\blogn\b|log\(n\))/.test(s)) return 10;
-
-  // 선형/선형 유사(V, E 포함)
-  if (/(?:\bn\b|\bv\b|\be\b)/.test(s)) return 14;
-
-  // 상수
-  if (/\b1\b/.test(s)) return 1;
 
   // 기타(비교 불가) -> 0
   return 0;

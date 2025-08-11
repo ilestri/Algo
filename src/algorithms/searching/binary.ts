@@ -19,21 +19,75 @@ export const pseudocode = [
   '  else r ← m-1'
 ]
 
-export function* generate({array, x}: { array: number[], x: number }): Generator<Step> {
-  let l = 0, r = array.length - 1
+type BinarySearchEvent =
+  | { type: 'init'; l: number; r: number }
+  | { type: 'range'; l: number; r: number }
+  | { type: 'mid'; m: number }
+  | { type: 'compare'; m: number }
+  | { type: 'found'; m: number }
+  | { type: 'moveL'; l: number; r: number }
+  | { type: 'moveR'; l: number; r: number }
+
+function* coreBinarySearch(a: number[], x: number): Generator<BinarySearchEvent> {
+  let l = 0,
+    r = a.length - 1
+  yield { type: 'init', l, r }
   while (l <= r) {
-    yield {type: 'highlightRange', payload: {l, r}, pc: [2], explain: '검색 범위'}
-    const m = Math.floor((l + r) / 2)
-    yield {type: 'compare', payload: {i: m}, pc: [3, 4], explain: `중간값 비교`}
-    if (array[m] === x) {
-      yield {type: 'visit', payload: {i: m}, pc: [4], explain: '발견'}
-      return
-    } else if (array[m] < x) {
+    yield { type: 'range', l, r }
+    const m = (l + r) >> 1
+    yield { type: 'mid', m }
+    yield { type: 'compare', m }
+    if (a[m] === x) {
+      yield { type: 'found', m }
+      break
+    } else if (a[m] < x) {
       l = m + 1
-      yield {type: 'highlightRange', payload: {l, r}, pc: [5], explain: '오른쪽 절반'}
+      yield { type: 'moveL', l, r }
     } else {
       r = m - 1
-      yield {type: 'highlightRange', payload: {l, r}, pc: [6], explain: '왼쪽 절반'}
+      yield { type: 'moveR', l, r }
+    }
+  }
+}
+
+export function* generate({array, x}: { array: number[]; x: number }): Generator<Step> {
+  for (const e of coreBinarySearch(array, x)) {
+    switch (e.type) {
+      case 'range':
+        yield {
+          type: 'highlightRange',
+          payload: { l: e.l, r: e.r },
+          pc: [2],
+          explain: '검색 범위',
+        }
+        break
+      case 'compare':
+        yield {
+          type: 'compare',
+          payload: { i: e.m },
+          pc: [3, 4],
+          explain: '중간값 비교',
+        }
+        break
+      case 'found':
+        yield { type: 'visit', payload: { i: e.m }, pc: [4], explain: '발견' }
+        return
+      case 'moveL':
+        yield {
+          type: 'highlightRange',
+          payload: { l: e.l, r: e.r },
+          pc: [5],
+          explain: '오른쪽 절반',
+        }
+        break
+      case 'moveR':
+        yield {
+          type: 'highlightRange',
+          payload: { l: e.l, r: e.r },
+          pc: [6],
+          explain: '왼쪽 절반',
+        }
+        break
     }
   }
 }
@@ -81,33 +135,38 @@ export const adapter = {
  */
 export function stepsOf(input: { array: number[]; key: number }): Step[] {
   // 입력을 그대로 사용(자동 정렬하지 않음)
-  const a = input.array.slice();
-  const key = input.key;
-  const steps: Step[] = [];
+  const a = input.array.slice()
+  const key = input.key
+  const steps: Step[] = []
 
-  let l = 0, r = a.length - 1;
-  // 초기 포인터/구간 표시
-  pushStep(steps, 'pointer', {name: 'l', index: l}, [1], `좌측 경계 초기화 l=${l}`)
-  pushStep(steps, 'pointer', {name: 'r', index: r}, [1], `우측 경계 초기화 r=${r}`)
-  pushStep(steps, 'highlightRange', {l, r}, [1], `탐색 구간 초기화 [${l}, ${r}]`)
-
-  while (l <= r) {
-    pushStep(steps, 'highlightRange', {l, r}, [2], `현재 구간 [${l}, ${r}]`)
-    const m = (l + r) >> 1;
-    pushStep(steps, 'pointer', {name: 'm', index: m}, [3], `중앙 인덱스 설정 m=${m}`)
-    pushStep(steps, 'compare', {i: m}, [3, 4], `중앙 인덱스 ${m} 값과 키 비교`)
-    if (a[m] === key) {
-      pushStep(steps, 'visit', {i: m}, [4], `키 발견: 인덱스 ${m}`)
-      break;
-    } else if (a[m] < key) {
-      pushStep(steps, 'pointer', {name: 'l', index: m + 1}, [5], `좌측 경계 이동: l=${m + 1}`)
-      l = m + 1;
-    } else {
-      pushStep(steps, 'pointer', {name: 'r', index: m - 1}, [6], `우측 경계 이동: r=${m - 1}`)
-      r = m - 1;
+  for (const e of coreBinarySearch(a, key)) {
+    switch (e.type) {
+      case 'init':
+        pushStep(steps, 'pointer', { name: 'l', index: e.l }, [1], `좌측 경계 초기화 l=${e.l}`)
+        pushStep(steps, 'pointer', { name: 'r', index: e.r }, [1], `우측 경계 초기화 r=${e.r}`)
+        pushStep(steps, 'highlightRange', { l: e.l, r: e.r }, [1], `탐색 구간 초기화 [${e.l}, ${e.r}]`)
+        break
+      case 'range':
+        pushStep(steps, 'highlightRange', { l: e.l, r: e.r }, [2], `현재 구간 [${e.l}, ${e.r}]`)
+        break
+      case 'mid':
+        pushStep(steps, 'pointer', { name: 'm', index: e.m }, [3], `중앙 인덱스 설정 m=${e.m}`)
+        break
+      case 'compare':
+        pushStep(steps, 'compare', { i: e.m }, [3, 4], `중앙 인덱스 ${e.m} 값과 키 비교`)
+        break
+      case 'found':
+        pushStep(steps, 'visit', { i: e.m }, [4], `키 발견: 인덱스 ${e.m}`)
+        break
+      case 'moveL':
+        pushStep(steps, 'pointer', { name: 'l', index: e.l }, [5], `좌측 경계 이동: l=${e.l}`)
+        break
+      case 'moveR':
+        pushStep(steps, 'pointer', { name: 'r', index: e.r }, [6], `우측 경계 이동: r=${e.r}`)
+        break
     }
   }
-  return steps;
+  return steps
 }
 
 export const descriptor: AlgoDescriptor<{ array: number[]; key: number }> = {

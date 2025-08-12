@@ -11,13 +11,12 @@ export const decodeString = (s: string): string | null => {
   }
 };
 
-export const encodeState = (obj: any) => encodeString(JSON.stringify(obj));
+export const encodeState = (obj: any) =>
+  encodeURIComponent(JSON.stringify(obj));
 
 export const decodeState = <T = any>(s: string): T | null => {
-  const decoded = decodeString(s);
-  if (!decoded) return null;
   try {
-    return JSON.parse(decoded) as T;
+    return JSON.parse(decodeURIComponent(s)) as T;
   } catch {
     return null;
   }

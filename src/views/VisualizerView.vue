@@ -68,6 +68,12 @@
 
     <KeyboardShortcutsModal :open="shortcutsOpen" @close="shortcutsOpen=false"/>
     <ErrorDialog :open="errorOpen" :message="errorMessage" @close="errorOpen=false"/>
+    <div
+      v-if="toastVisible"
+      class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded shadow"
+    >
+      {{ toastMessage }}
+    </div>
   </section>
 </template>
 
@@ -101,6 +107,9 @@ import {useGlobalStore} from '@/stores/global';
 const session = useSessionStore();
 const global = useGlobalStore();
 const route = useRoute();
+
+const toastVisible = ref(false);
+const toastMessage = ref('');
 
 // 레지스트리 초기화 및 목록
 const descriptors = ref<AlgoDescriptor[]>([]);
@@ -405,13 +414,19 @@ watch(index, (i, prev) => {
     const snap = metricsTimeline.value[i - 1];
     if (snap) Object.assign(metrics.value, snap);
     else Object.assign(metrics.value, initialMetrics);
-    metricsTimeline.value.splice(i);
+metricsTimeline.value.splice(i);
   }
 });
 
+function showToast(msg: string, duration = 2000) {
+  toastMessage.value = msg;
+  toastVisible.value = true;
+  setTimeout(() => (toastVisible.value = false), duration);
+}
+
 function onShared() {
-  // 간단한 알림(필요 시 토스트로 대체 가능)
   announcer.announce('공유 링크가 복사되었습니다.');
+  showToast('링크가 복사되었습니다');
 }
 
 const {shortcutsOpen} = useKeyboard({

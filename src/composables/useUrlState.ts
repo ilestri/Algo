@@ -12,14 +12,14 @@ function read(route: ReturnType<typeof useRoute>): UrlState {
   const category = route.params.category as string | undefined;
   const name = route.params.name as string | undefined;
   const algo = category && name ? `${category}/${name}` : (route.query.algo as string) ?? 'sorting/quick';
-  const compressed = route.query.s as string | undefined;
+  const encoded = route.query.s as string | undefined;
 
   let payload: any = null;
-  if (compressed) {
-    payload = decodeState<any>(compressed);
+  if (encoded) {
+    payload = decodeState<any>(encoded);
   }
 
-  const input = payload?.input ?? (route.query.input as any | undefined);
+  const input = payload?.array !== undefined ? { array: payload.array } : undefined;
   let speed = Number(payload?.speed ?? route.query.speed ?? 1);
   if (!Number.isFinite(speed)) speed = 1;
 
@@ -34,7 +34,9 @@ function write(
   const current = read(route);
   const merged: UrlState = { ...current, ...next };
 
-  const s = encodeState({ input: merged.input, speed: merged.speed });
+  const payload: any = { speed: merged.speed };
+  if (merged.input?.array !== undefined) payload.array = merged.input.array;
+  const s = encodeState(payload);
   const [category, name] = merged.algo.split('/') as [string, string];
   router.replace({
     name: 'visualize',

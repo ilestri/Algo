@@ -11,11 +11,13 @@ const emit = defineEmits<{ (e: 'copied'): void }>();
 
 const { copyText } = useClipboard();
 
-function copy() {
+async function copy() {
   const url = new URL(location.href);
-  const s = encodeState({ input: props.input, speed: props.speed });
+  const payload: any = { speed: props.speed };
+  if (Array.isArray(props.input?.array)) payload.array = props.input.array;
+  const s = encodeState(payload);
   url.searchParams.set('s', s);
-  copyText(url.toString());
-  emit('copied');
+  const ok = await copyText(url.toString());
+  if (ok) emit('copied');
 }
 </script>

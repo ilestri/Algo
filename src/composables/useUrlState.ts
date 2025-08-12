@@ -9,7 +9,9 @@ type UrlState = {
 };
 
 function read(route: ReturnType<typeof useRoute>): UrlState {
-  const algo = (route.query.algo as string) ?? 'sorting/quick';
+  const category = route.params.category as string | undefined;
+  const name = route.params.name as string | undefined;
+  const algo = category && name ? `${category}/${name}` : (route.query.algo as string) ?? 'sorting/quick';
   const compressed = route.query.s as string | undefined;
 
   let payload: any = null;
@@ -33,11 +35,11 @@ function write(
   const merged: UrlState = { ...current, ...next };
 
   const s = encodeState({ input: merged.input, speed: merged.speed });
+  const [category, name] = merged.algo.split('/') as [string, string];
   router.replace({
-    query: {
-      algo: merged.algo,
-      s,
-    },
+    name: 'visualize',
+    params: { category, name },
+    query: { s },
   });
 }
 

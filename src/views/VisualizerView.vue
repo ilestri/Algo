@@ -7,7 +7,7 @@
         <option v-for="d in descriptors" :key="d.id" :value="d.id">{{ d.title }}</option>
       </select>
       <div class="ml-auto">
-        <ShareLinkButton :algo="selectedId" :input="input" :speed="speed" @copied="onShared"/>
+        <ShareLinkButton :input="input" :speed="speed" @copied="onShared"/>
       </div>
     </div>
 

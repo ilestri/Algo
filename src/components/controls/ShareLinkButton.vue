@@ -6,14 +6,13 @@
 import { useClipboard } from '@/composables/useClipboard';
 import { encodeState } from '@/lib/url-compress';
 
-const props = defineProps<{ algo: string; input?: any; speed?: number }>();
+const props = defineProps<{ input?: any; speed?: number }>();
 const emit = defineEmits<{ (e: 'copied'): void }>();
 
 const { copyText } = useClipboard();
 
 function copy() {
   const url = new URL(location.href);
-  url.searchParams.set('algo', props.algo);
   const s = encodeState({ input: props.input, speed: props.speed });
   url.searchParams.set('s', s);
   copyText(url.toString());

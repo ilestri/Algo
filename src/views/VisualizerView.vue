@@ -68,12 +68,11 @@
 
     <KeyboardShortcutsModal :open="shortcutsOpen" @close="shortcutsOpen=false"/>
     <ErrorDialog :open="errorOpen" :message="errorMessage" @close="errorOpen=false"/>
-    <div
-      v-if="toastVisible"
-      class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded shadow"
-    >
-      {{ toastMessage }}
-    </div>
+    <ToastMessage
+      :message="toastMessage"
+      :visible="toastVisible"
+      :type="toastType"
+    />
   </section>
 </template>
 
@@ -88,6 +87,7 @@ import MetricsPanel from '@/components/panels/MetricsPanel.vue';
 import InspectorPanel from '@/components/panels/InspectorPanel.vue';
 import KeyboardShortcutsModal from '@/components/modals/KeyboardShortcutsModal.vue';
 import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+import ToastMessage from '@/components/common/ToastMessage.vue';
 
 import DataInputForm from '@/components/forms/DataInputForm.vue';
 import GraphEditorTabs from '@/components/forms/GraphEditorTabs.vue';
@@ -110,6 +110,7 @@ const route = useRoute();
 
 const toastVisible = ref(false);
 const toastMessage = ref('');
+const toastType = ref<'success' | 'error' | 'info'>('info');
 
 // 레지스트리 초기화 및 목록
 const descriptors = ref<AlgoDescriptor[]>([]);
@@ -418,15 +419,20 @@ metricsTimeline.value.splice(i);
   }
 });
 
-function showToast(msg: string, duration = 2000) {
+function showToast(
+  msg: string,
+  duration = 2000,
+  type: 'success' | 'error' | 'info' = 'info',
+) {
   toastMessage.value = msg;
+  toastType.value = type;
   toastVisible.value = true;
   setTimeout(() => (toastVisible.value = false), duration);
 }
 
 function onShared() {
   announcer.announce('공유 링크가 복사되었습니다.');
-  showToast('링크가 복사되었습니다');
+  showToast('링크가 복사되었습니다', 2000, 'success');
 }
 
 const {shortcutsOpen} = useKeyboard({

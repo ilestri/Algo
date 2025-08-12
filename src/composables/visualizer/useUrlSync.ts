@@ -1,4 +1,4 @@
-import {watch, onMounted, type Ref, type ComputedRef} from 'vue';
+import {watch, type Ref, type ComputedRef} from 'vue';
 import type {AlgoDescriptor} from '@/types/step';
 
 interface UrlSyncOptions {
@@ -51,24 +51,21 @@ export function useUrlSync({
     },
     {deep: true},
   );
-
-  onMounted(() => {
-    const nv = urlState.value.input;
-    if (!nv) return;
-    const normalize = (currentMeta.value as any)?.normalizeInput ?? ((x: any) => x);
-    const normalized = normalize(nv);
-    Object.keys(input).forEach((k) => delete (input as any)[k]);
-    Object.assign(input, JSON.parse(JSON.stringify(normalized)));
-    buildAndLoadSteps();
-  });
-
-  watch(() => currentMeta.value, (meta) => {
-    if (!meta) return;
-    const def = meta.defaultInput as any;
-    Object.keys(input).forEach((k) => delete (input as any)[k]);
-    Object.assign(input, JSON.parse(JSON.stringify(def)));
-    patch({algo: selectedId.value, input: JSON.parse(JSON.stringify(input))});
-    buildAndLoadSteps();
-  });
+  watch(
+    () => currentMeta.value,
+    (meta) => {
+      if (!meta) return;
+      const src = urlState.value.input ?? meta.defaultInput;
+      const normalize = (meta as any)?.normalizeInput ?? ((x: any) => x);
+      const normalized = normalize(src);
+      Object.keys(input).forEach((k) => delete (input as any)[k]);
+      Object.assign(input, JSON.parse(JSON.stringify(normalized)));
+      if (!urlState.value.input) {
+        patch({algo: selectedId.value, input: JSON.parse(JSON.stringify(input))});
+      }
+      buildAndLoadSteps();
+    },
+    {immediate: true},
+  );
 }
 

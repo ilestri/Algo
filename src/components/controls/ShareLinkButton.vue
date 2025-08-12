@@ -16,7 +16,10 @@ async function copy() {
   const payload: any = { speed: props.speed };
   if (Array.isArray(props.input?.array)) payload.array = props.input.array;
   const s = encodeState(payload);
-  url.searchParams.set('s', s);
+  const [hashPath, hashQuery = ''] = url.hash.split('?');
+  const params = new URLSearchParams(hashQuery);
+  params.set('s', s);
+  url.hash = `${hashPath}?${params.toString()}`;
   const ok = await copyText(url.toString());
   if (ok) emit('copied');
 }

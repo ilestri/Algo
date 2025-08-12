@@ -1,4 +1,4 @@
-import {type Ref, type ComputedRef} from 'vue';
+import {type Ref, type ComputedRef, watch} from 'vue';
 import {useUrlState} from '@/composables/useUrlState';
 import {useUrlSync} from '@/composables/visualizer/useUrlSync';
 import type {AlgoDescriptor} from '@/types/step';
@@ -34,6 +34,16 @@ export function useUrlManager({
     patch,
     patchSelected,
   });
+
+  watch(
+    () => urlState.value.speed,
+    (nv) => {
+      if (typeof nv === 'number' && !Number.isNaN(nv)) {
+        setSpeed(nv);
+      }
+    },
+    { immediate: true },
+  );
 
   function onSpeedChange(val: number) {
     setSpeed(val);

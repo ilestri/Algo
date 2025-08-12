@@ -32,6 +32,12 @@ export function useVisualizerWorker(args: WorkerArgs) {
 
     if (meta.category === 'sorting' || meta.category === 'searching') {
       args.state.array = Array.isArray(normalized.array) ? normalized.array.slice() : [];
+    } else if (meta.category === 'tree') {
+      const initRes = (mod as any).init?.(normalized);
+      const st = initRes?.state ?? {};
+      args.state.nodes = st.nodes ?? [];
+      args.state.edges = st.edges ?? [];
+      if ('root' in st) args.state.root = st.root;
     }
     args.state.highlight = [];
     args.state.sorted = new Set<number>();

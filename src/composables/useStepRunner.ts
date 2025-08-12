@@ -4,7 +4,7 @@ import { initialMetrics } from '@/lib/metrics';
 import type { StepInterpreter } from '@/lib/step-interpreter';
 import { cloneDeep } from '@/lib/cloneDeep';
 
-type RunnerEvent = 'beforeStep' | 'afterStep' | 'done';
+type RunnerEvent = 'beforeStep' | 'afterStep' | 'afterBack' | 'done';
 
 export function useStepRunner<TState>(opts: {
   initialState: TState;
@@ -33,6 +33,7 @@ export function useStepRunner<TState>(opts: {
   const listeners: Record<RunnerEvent, Set<(payload?: any) => void>> = {
     beforeStep: new Set(),
     afterStep: new Set(),
+    afterBack: new Set(),
     done: new Set(),
   };
   const emit = (ev: RunnerEvent, payload?: any) => listeners[ev].forEach(cb => cb(payload));
@@ -62,7 +63,7 @@ export function useStepRunner<TState>(opts: {
   function reset() {
     pause();
     index.value = 0;
-    metrics.value = { ...initialMetrics };
+    Object.assign(metrics.value, initialMetrics);
     if (strategy === 'full') {
       snapshots.length = 0;
       snapshots[0] = cloneDeep(opts.initialState);
@@ -150,10 +151,11 @@ export function useStepRunner<TState>(opts: {
       const delta = applyMetrics(step);
       accumulateMetrics(delta, -1);
     }
+    emit('afterBack', { index: index.value, metrics: { ...metrics.value } });
   }
 
   function recomputeMetrics(toIdx: number) {
-    metrics.value = { ...initialMetrics };
+    Object.assign(metrics.value, initialMetrics);
     for (let i = 0; i < toIdx; i++) {
       const delta = applyMetrics(steps[i]);
       accumulateMetrics(delta);
@@ -198,5 +200,5 @@ export function useStepRunner<TState>(opts: {
     _timer = requestAnimationFrame(tick);
   }
 
-  return { speed, index, playing, done, play, pause, reset, stepForward, stepBack, setSpeed, jumpTo, on };
+  return { speed, index, playing, done, play, pause, reset, stepForward, stepBack, setSpeed, jumpTo, on, metrics };
 }

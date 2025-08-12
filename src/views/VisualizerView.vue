@@ -92,7 +92,8 @@ import {useA11yAnnouncements} from '@/composables/useA11yAnnouncements';
 import {useVisualizerWorker} from '@/composables/visualizer/useWorker';
 import {useKeyboard} from '@/composables/visualizer/useKeyboard';
 import {useUrlManager} from '@/composables/visualizer/useUrlManager';
-import type {AlgoCategory, AlgoDescriptor, AlgoModule, SnapshotStrategy, Step} from '@/types/step';
+import type {AlgoCategory, AlgoDescriptor, AlgoModule, SnapshotStrategy, Step, RunMetrics} from '@/types/step';
+import { initialMetrics } from '@/lib/metrics';
 import {getAlgorithm, initAlgorithms, listDescriptorsByCategory} from '@/algorithms/registry';
 import {useSessionStore} from '@/stores/session';
 import {useGlobalStore} from '@/stores/global';
@@ -186,17 +187,8 @@ const steps = ref<Step[]>([]);
 const pc = ref<number[]>([]);
 const explain = ref<string>('');
 
-// 메트릭 및 타임라인
-const metrics = reactive({
-  steps: 0,
-  compares: 0,
-  swaps: 0,
-  visits: 0,
-  relaxes: 0,
-  enqueues: 0,
-  dequeues: 0
-});
-const metricsTimeline = ref<Array<Partial<typeof metrics>>>([]);
+// 메트릭 타임라인
+const metricsTimeline = ref<Array<Partial<RunMetrics>>>([]);
 
 
 // 간이 인터프리터(배열·그래프 공통 일부 처리)
@@ -304,7 +296,8 @@ const {
   stepBack,
   setSpeed,
   jumpTo,
-  on
+  on,
+  metrics
 } = useStepRunner({
   initialState: state,
   steps: steps.value,
@@ -318,25 +311,21 @@ on('beforeStep', () => {
   // no-op
 });
 on('afterStep', ({index: i, step}) => {
-  metrics.steps += 1;
-  if (step.type === 'compare') metrics.compares += 1;
-  if (step.type === 'swap') metrics.swaps += 1;
-  if (step.type === 'visit') metrics.visits += 1;
-  if (step.type === 'relax') metrics.relaxes += 1;
-  if (step.type === 'enqueue') metrics.enqueues += 1;
-  if (step.type === 'dequeue') metrics.dequeues += 1;
-
   pc.value = step.pc ?? [];
   explain.value = step.explain ?? '';
   session.pc = pc.value;
   session.explain = explain.value;
 
   // 타임라인 샘플링
-  metricsTimeline.value.push({...metrics});
+  metricsTimeline.value.push({ ...metrics.value });
   if (metricsTimeline.value.length > 2000) metricsTimeline.value.shift();
 
   // 라이브 리전 안내
   announcer.announce(step.explain || '');
+});
+on('afterBack', ({ index: i, metrics: m }) => {
+  Object.assign(metrics.value, m);
+  metricsTimeline.value.splice(i);
 });
 on('done', () => {
   // 완료
@@ -349,7 +338,7 @@ const {buildAndLoadSteps} = useVisualizerWorker({
   input,
   state,
   steps,
-  metrics,
+  metrics: metrics.value,
   metricsTimeline,
   pc,
   explain,
@@ -406,11 +395,18 @@ function togglePlay() {
   playing.value ? pause() : play();
 }
 
-// 현재 스텝 메타
-watch(index, (i) => {
+// 현재 스텝 메타 및 되감기 시 메트릭 복원
+watch(index, (i, prev) => {
   const cur = steps.value[i] || null;
   pc.value = cur?.pc ?? [];
   explain.value = cur?.explain ?? '';
+
+  if (i < (prev ?? 0)) {
+    const snap = metricsTimeline.value[i - 1];
+    if (snap) Object.assign(metrics.value, snap);
+    else Object.assign(metrics.value, initialMetrics);
+    metricsTimeline.value.splice(i);
+  }
 });
 
 function onShared() {

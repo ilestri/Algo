@@ -384,6 +384,14 @@ function onSubmitInput(payload: any) {
   const meta = currentMeta.value;
   if (!meta) return;
 
+  if (currentMeta.value?.category === 'tree') {
+    input.keys = Array.isArray(payload?.keys) ? payload.keys.slice() : [];
+    if (Number.isFinite(payload?.search)) input.search = payload.search;
+    if (Number.isFinite(payload?.remove)) input.remove = payload.remove;
+    buildAndLoadSteps();
+    return;
+  }
+
   // 배열만 전달되는 케이스(정렬 등)
   if (Array.isArray(payload)) {
     (input as any).array = payload.slice();

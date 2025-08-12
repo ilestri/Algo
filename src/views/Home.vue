@@ -16,14 +16,23 @@
         </div>
       </div>
       <div class="card p-6">
-        <h2 class="text-xl font-semibold mb-2">빠른 진입</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'sorting', name: 'selection' } }">Selection Sort</RouterLink>
-          <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'sorting', name: 'insertion' } }">Insertion Sort</RouterLink>
-          <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'searching', name: 'binary' } }">Binary Search</RouterLink>
-          <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'tree', name: 'bst' } }">BST</RouterLink>
-          <RouterLink class="btn-ghost" :to="{ name: 'playground' }">Playground</RouterLink>
-          <RouterLink class="btn-ghost" :to="{ name: 'about' }">About</RouterLink>
+        <h2 class="text-xl font-semibold mb-4">빠른 진입</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <RouterLink class="card p-4 flex items-center justify-center" :to="{ name: 'sorting' }">정렬</RouterLink>
+          <RouterLink class="card p-4 flex items-center justify-center" :to="{ name: 'searching' }">탐색</RouterLink>
+          <RouterLink class="card p-4 flex items-center justify-center" :to="{ name: 'graph' }">그래프</RouterLink>
+          <RouterLink class="card p-4 flex items-center justify-center" :to="{ name: 'tree' }">트리</RouterLink>
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-semibold mb-2">알고리즘 바로가기</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'sorting', name: 'selection' } }">Selection Sort</RouterLink>
+            <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'sorting', name: 'insertion' } }">Insertion Sort</RouterLink>
+            <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'searching', name: 'binary' } }">Binary Search</RouterLink>
+            <RouterLink class="btn-ghost" :to="{ name: 'visualize', params: { category: 'tree', name: 'bst' } }">BST</RouterLink>
+            <RouterLink class="btn-ghost" :to="{ name: 'playground' }">Playground</RouterLink>
+            <RouterLink class="btn-ghost" :to="{ name: 'about' }">About</RouterLink>
+          </div>
         </div>
         <div class="mt-6">
           <p class="text-sm opacity-70">테마 토글은 헤더에서 변경할 수 있습니다.</p>

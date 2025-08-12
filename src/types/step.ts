@@ -39,4 +39,5 @@ export interface AlgoModule<I = any> {
   descriptor: AlgoDescriptor<I>;
   stepsOf(input: I): Step[];
   snapshotStrategy?: SnapshotStrategy;  // 되감기 전략
+  init?: (input: any) => { state?: any; input?: any };
 }

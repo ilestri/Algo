@@ -3,7 +3,7 @@ import {useRegistryStore} from '@/stores/registry';
 
 /**
  * src/algorithms//registry.ts 를 제외한 모든 알고리즘 모듈을 지연 로딩한다.
- * 각 모듈은 { descriptor, stepsOf, snapshotStrategy? }를 export 해야 한다.
+ * 각 모듈은 { descriptor, stepsOf, snapshotStrategy?, init? }를 export 해야 한다.
  */
 const defaultModuleLoaders = import.meta.glob<false, string, AlgoModule<any>>(
     [
@@ -40,6 +40,7 @@ export async function initAlgorithms() {
           descriptor: mod.descriptor,
           stepsOf: mod.stepsOf,
           snapshotStrategy: mod.snapshotStrategy,
+          init: (mod as any).init,
         };
         store.register(algo);
       } else {

@@ -147,8 +147,8 @@ function layout(root: Node | undefined, W = 800, H = 240) {
   return {nodes, edges}
 }
 
-export function init({seq}: { seq?: number[] }) {
-  const s = seq && seq.length ? seq : [8, 3, 10, 1, 6, 14]
+export function init({ keys }: { keys?: number[] }) {
+  const s = keys && keys.length ? keys : [8, 3, 10, 1, 6, 14]
   const steps: Step[] = []
   let root: Node | undefined = undefined
   nextId = 1
@@ -159,13 +159,13 @@ export function init({seq}: { seq?: number[] }) {
   return {input: s, state: {nodes, edges, root}}
 }
 
-export function* generate(seq: number[]) {
+export function* generate(keys: number[]) {
   // 이미 init에서 전체 삽입에 대한 steps를 생성하는 대신,
   // 시각화를 위해 다시 한 번 생성
   const steps: Step[] = []
   let root: Node | undefined = undefined
   nextId = 1
-  for (const v of seq) {
+  for (const v of keys) {
     root = insert(root, v, steps)
   }
   for (const s of steps) yield s

@@ -5,7 +5,11 @@
         <RouterLink to="/" class="flex items-center gap-2">
           <span class="text-xl font-semibold">Algo Visualizer</span>
         </RouterLink>
-        <nav class="flex items-center gap-2">
+        <nav class="flex flex-wrap items-center gap-2">
+          <RouterLink class="btn-ghost" to="/sorting">Sorting</RouterLink>
+          <RouterLink class="btn-ghost" to="/searching">Searching</RouterLink>
+          <RouterLink class="btn-ghost" to="/graph">Graph</RouterLink>
+          <RouterLink class="btn-ghost" to="/tree">Tree</RouterLink>
           <RouterLink class="btn-ghost" to="/playground">Playground</RouterLink>
           <RouterLink class="btn-ghost" to="/about">About</RouterLink>
           <ThemeToggle class="ml-2" />

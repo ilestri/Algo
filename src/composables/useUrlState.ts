@@ -19,7 +19,12 @@ function read(route: ReturnType<typeof useRoute>): UrlState {
     payload = decodeState<any>(encoded);
   }
 
-  const input = payload?.array !== undefined ? { array: payload.array } : undefined;
+  let input: any = undefined;
+  if (payload?.array !== undefined || payload?.key !== undefined) {
+    input = {};
+    if (payload.array !== undefined) input.array = payload.array;
+    if (payload.key !== undefined) input.key = payload.key;
+  }
   let speed = Number(payload?.speed ?? route.query.speed ?? 1);
   if (!Number.isFinite(speed)) speed = 1;
 
@@ -36,6 +41,7 @@ function write(
 
   const payload: any = { speed: merged.speed };
   if (merged.input?.array !== undefined) payload.array = merged.input.array;
+  if (merged.input?.key !== undefined) payload.key = merged.input.key;
   const s = encodeState(payload);
   const [category, name] = merged.algo.split('/') as [string, string];
   router.replace({

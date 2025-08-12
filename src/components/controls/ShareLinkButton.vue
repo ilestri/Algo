@@ -15,6 +15,7 @@ async function copy() {
   const url = new URL(location.href);
   const payload: any = { speed: props.speed };
   if (Array.isArray(props.input?.array)) payload.array = props.input.array;
+  if (Number.isFinite(props.input?.key)) payload.key = props.input.key;
   const s = encodeState(payload);
   const [hashPath, hashQuery = ''] = url.hash.split('?');
   const params = new URLSearchParams(hashQuery);

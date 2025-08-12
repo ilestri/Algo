@@ -263,7 +263,8 @@ const interpreter = {
           s.highlight = [i];
         }
         if (id != null && Array.isArray(s.nodes)) {
-          const n = s.nodes.find((n: any) => n.id === id);
+          s.nodes.forEach((n: any) => (n.highlight = false));
+          const n = s.nodes.find((n: any) => n.id === id || n.value === id);
           if (n) n.highlight = true;
         }
         break;

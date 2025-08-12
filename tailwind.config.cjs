@@ -7,16 +7,17 @@ module.exports = {
       colors: {
         surface: 'var(--surface)',
         panel: 'var(--panel)',
+        muted: 'var(--muted)',
         accent: 'var(--accent)',
         primary: 'var(--primary)',
         warning: 'var(--warning)',
         danger: 'var(--danger)',
-        text: 'var(--text)'
+        text: 'var(--text)',
       },
       borderRadius: {
-        '2xl': '1rem'
-      }
-    }
+        '2xl': '1rem',
+      },
+    },
   },
-  plugins: [require('@tailwindcss/forms')]
+  plugins: [require('@tailwindcss/forms')],
 }

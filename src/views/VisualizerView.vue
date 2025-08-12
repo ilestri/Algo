@@ -257,10 +257,14 @@ const interpreter = {
         break;
       }
       case 'visit': {
-        const {i} = step.payload || {};
+        const {i, id} = step.payload || {};
         if (Number.isInteger(i)) {
           s.found = i;
           s.highlight = [i];
+        }
+        if (id != null && Array.isArray(s.nodes)) {
+          const n = s.nodes.find((n: any) => n.id === id);
+          if (n) n.highlight = true;
         }
         break;
       }
